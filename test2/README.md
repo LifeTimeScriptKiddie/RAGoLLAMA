@@ -42,3 +42,15 @@ rag_backend → PORT 8501
 open-webui → PORT 3000
 ollama → PORT 11434
 
+
+
+# Pulling ollama model inside container
+```
+docker exec -it ollama ollama pull llama3
+docker exec -it ollama ollama pull llama3:8b-instruct
+```
+# Check ollama model
+```
+docker exec -it ollama ollama list
+```
+
