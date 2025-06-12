@@ -1,8 +1,7 @@
-
-
 import requests
 import logging
 from config import OPEN_WEBUI_URL, HEADERS
+import os
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,4 +38,9 @@ def upload_file(knowledge_id: str, filepath: str):
         logging.error(f"Error uploading file: {e}")
         return None
 
-
+def sync_pdf_folder_to_knowledge(folder_path: str, knowledge_id: str):
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".pdf"):
+            full_path = os.path.join(folder_path, filename)
+            result = upload_file(knowledge_id, full_path)
+            logging.info(f"Uploaded {filename}: {result}")
