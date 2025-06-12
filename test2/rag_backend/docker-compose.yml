@@ -1,0 +1,8 @@
+# Verify containers
+docker ps
+
+# Test Ollama API
+curl http://localhost:11434/api/tags
+
+# Test Open WebUI
+http://localhost:3000
