@@ -1,6 +1,3 @@
-
-#--- main.py ---
-
 import streamlit as st
 from pathlib import Path
 import tempfile
@@ -26,4 +23,3 @@ if uploaded_file:
         answer = query_ollama(prompt)
         st.subheader("Answer")
         st.markdown(answer)
-
