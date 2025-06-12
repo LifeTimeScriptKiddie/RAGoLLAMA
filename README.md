@@ -1,41 +1,58 @@
 
-
-### 📊 **Mermaid Diagram for Your RAG Pipeline**
+### 📈 Mermaid Diagram: Detailed RAG Pipeline
 
 ```mermaid
 flowchart TD
-    A[📄 PDF Input] --> B[📝 Text Extraction]
-    B --> C[🔪 Chunking]
-    C --> D[🔢 Embedding]
-    D --> E[🧠 Vector DB]
-    E --> F[🔍 Similarity Search]
-    F --> G[🧾 Prompt Construction]
-    G --> H[🤖 LLM Response]
+    A[PDF File Uploaded via Streamlit Interface]
+    B[Extract Text using PyPDF2 or OCR (ocrmypdf fallback)]
+    C[Split Text into Chunks using RecursiveCharacterTextSplitter]
+    D[Convert Chunks to Embeddings using SentenceTransformers]
+    E[Store Embeddings in Temporary Vector Store (in memory)]
+    F[User Inputs Query via Textbox]
+    G[Embed Query using same Embedding Model]
+    H[Perform Similarity Search against Vector Store]
+    I[Select Top K Relevant Chunks]
+    J[Construct Prompt: Context + User Query]
+    K[Send Prompt to Local LLM via Ollama API]
+    L[LLM Generates Response]
+    M[Return Answer to User in Streamlit UI]
 
-    style A fill:#fef9c3,stroke:#000
-    style B fill:#fce7f3,stroke:#000
-    style C fill:#e0f2fe,stroke:#000
-    style D fill:#ede9fe,stroke:#000
-    style E fill:#d1fae5,stroke:#000
-    style F fill:#fcd34d,stroke:#000
-    style G fill:#f3e8ff,stroke:#000
-    style H fill:#dbeafe,stroke:#000
+    %% Flow Connections
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    F --> G
+    G --> H
+    E --> H
+    H --> I
+    I --> J
+    F --> J
+    J --> K
+    K --> L
+    L --> M
 
+    %% Styling
+    classDef step fill:#f9f9f9,stroke:#333,stroke-width:1px;
+    class A,B,C,D,E,F,G,H,I,J,K,L,M step;
 ```
 
 ---
 
-### 🧠 How It Works – Step by Step
+### 🧠 Summary of Key Steps
 
-| Step                       | Description                                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **📄 PDF Input**           | The user uploads a `.pdf` file.                                                                        |
-| **📝 Text Extraction**     | Text is extracted from the PDF using `PyPDF2`, or `ocrmypdf` if it's image-based.                      |
-| **🔪 Chunking**            | The text is broken into overlapping segments using LangChain's `RecursiveCharacterTextSplitter`.       |
-| **🔢 Embedding**           | Each chunk is embedded into a vector using SentenceTransformers.                                       |
-| **🧠 Vector DB**           | All embeddings are stored temporarily (in memory or file-based).                                       |
-| **🔍 Similarity Search**   | When a question is asked, its embedding is compared against the vector DB to retrieve relevant chunks. |
-| **🧾 Prompt Construction** | The top-k chunks are inserted into a prompt with the user's question.                                  |
-| **🤖 LLM Response**        | The prompt is sent to Ollama’s local LLM for generation.                                               |
-
----
+| Step | Description                                                                         |
+| ---- | ----------------------------------------------------------------------------------- |
+| A    | User uploads a `.pdf` through Streamlit.                                            |
+| B    | Text is extracted using `PyPDF2`; if blank, fallback to `ocrmypdf`.                 |
+| C    | Text is chunked using LangChain’s recursive splitter.                               |
+| D    | Each chunk is converted into vector embeddings.                                     |
+| E    | Embeddings are temporarily stored in memory (can be replaced with Chroma or FAISS). |
+| F    | User submits a natural language question.                                           |
+| G    | Question is also embedded.                                                          |
+| H    | Embedding is compared against the vector DB to find similar chunks.                 |
+| I    | Top-k most relevant text chunks are selected.                                       |
+| J    | A prompt is constructed from those chunks + the question.                           |
+| K    | The prompt is sent to a local model (e.g., `llama3`) running via Ollama.            |
+| L    | Ollama generates the answer.                                                        |
+| M    | Answer is shown to the user in Streamlit.                                           |
