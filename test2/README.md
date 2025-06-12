@@ -14,3 +14,10 @@ project-root/
 │   ├── Dockerfile
 │   └── .env               ← Backend-specific secrets (optional)
 ```
+
+
+docker-compose up --build -d
+
+docker-compose down
+
+
