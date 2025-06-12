@@ -43,17 +43,22 @@ sudo apt install -f
 sudo apt install docker-buildx docker-cli docker-compose
 ```
 
-
+# Interface
+```
 rag_backend → PORT 8501
 open-webui → PORT 3000
 ollama → PORT 11434
-
+```
 
 
 # Pulling ollama model inside container
 ```
 docker exec -it ollama ollama pull llama3
 docker exec -it ollama ollama pull llama3:8b-instruct
+docker exec -it ollama ollama pull codellama:7b           # for code generation
+docker exec -it ollama ollama pull mistral                # fast general-purpose
+docker exec -it ollama ollama pull phi3                  # small and performant
+
 ```
 # Check ollama model
 ```
