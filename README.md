@@ -39,5 +39,3 @@ Here's a simplified summary:
 	* Create a new prompt using the top `k` relevant chunks and the original query.
 6. **LLM Query (Ollama)**
 	* Send the prompt to Ollama's model (e.g., `llama3`) and get a context-aware answer.
-
-Let me know if you have any further questions or if there's anything else I can help with!
