@@ -3,21 +3,21 @@
 
 ```mermaid
 flowchart TD
-    A[PDF File Uploaded via Streamlit Interface]
-    B[Extract Text using PyPDF2 or OCR (ocrmypdf fallback)]
-    C[Split Text into Chunks using RecursiveCharacterTextSplitter]
-    D[Convert Chunks to Embeddings using SentenceTransformers]
-    E[Store Embeddings in Temporary Vector Store (in memory)]
-    F[User Inputs Query via Textbox]
-    G[Embed Query using same Embedding Model]
-    H[Perform Similarity Search against Vector Store]
-    I[Select Top K Relevant Chunks]
-    J[Construct Prompt: Context + User Query]
-    K[Send Prompt to Local LLM via Ollama API]
-    L[LLM Generates Response]
-    M[Return Answer to User in Streamlit UI]
+    A[PDF Uploaded via Streamlit]
+    B[Extract text using PyPDF2 or OCR fallback]
+    C[Split text using RecursiveCharacterTextSplitter]
+    D[Generate embeddings with SentenceTransformers]
+    E[Store embeddings in vector store]
+    F[User inputs query via Streamlit]
+    G[Embed query using same model]
+    H[Similarity search against vector store]
+    I[Select top K most relevant chunks]
+    J[Construct prompt with context and user query]
+    K[Send prompt to local LLM through Ollama]
+    L[Receive generated answer from LLM]
+    M[Display response in Streamlit]
 
-    %% Flow Connections
+    %% Flow connections
     A --> B
     B --> C
     C --> D
@@ -32,9 +32,10 @@ flowchart TD
     K --> L
     L --> M
 
-    %% Styling
-    classDef step fill:#f9f9f9,stroke:#333,stroke-width:1px;
+    %% Styling for clarity
+    classDef step fill:#f0f0f0,stroke:#333,stroke-width:1px;
     class A,B,C,D,E,F,G,H,I,J,K,L,M step;
+
 ```
 
 ---
