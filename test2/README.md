@@ -26,6 +26,12 @@ sudo apt install --reinstall docker-buildx-plugin docker-compose-plugin
 sudo docker compose up --build -d
 sudo docker compose down
 sudo docker ps
+
+
+# Wipe out
+sudo docker compose down --volumes --remove-orphans
+sudo docker system prune -af --volumes
+
 ```
 
 
