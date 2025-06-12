@@ -29,6 +29,12 @@ sudo docker compose down
 sudo docker ps
 ```
 
+# Docker Wipe out
+```
+sudo docker compose down --volumes --remove-orphans
+sudo docker system prune -af --volumes
+```
+
 
 
 
