@@ -19,27 +19,49 @@ flowchart TD
 
     F --> I
     J --> K
-
-
-
 ```
+
 
 ---
 
-### 🧠 Summary of Key Steps
+### ✅ **Step-by-Step Summary of the RAG Pipeline**
 
-| Step | Description                                                                         |
-| ---- | ----------------------------------------------------------------------------------- |
-| A    | User uploads a `.pdf` through Streamlit.                                            |
-| B    | Text is extracted using `PyPDF2`; if blank, fallback to `ocrmypdf`.                 |
-| C    | Text is chunked using LangChain’s recursive splitter.                               |
-| D    | Each chunk is converted into vector embeddings.                                     |
-| E    | Embeddings are temporarily stored in memory (can be replaced with Chroma or FAISS). |
-| F    | User submits a natural language question.                                           |
-| G    | Question is also embedded.                                                          |
-| H    | Embedding is compared against the vector DB to find similar chunks.                 |
-| I    | Top-k most relevant text chunks are selected.                                       |
-| J    | A prompt is constructed from those chunks + the question.                           |
-| K    | The prompt is sent to a local model (e.g., `llama3`) running via Ollama.            |
-| L    | Ollama generates the answer.                                                        |
-| M    | Answer is shown to the user in Streamlit.                                           |
+1. **📄 PDF Upload**
+
+   * PDF is uploaded via either **Streamlit** or **Open WebUI** interface.
+
+2. **🧠 Text Extraction / OCR**
+
+   * For text-based PDFs, `pdf_utils.py` extracts text using `PyPDF2`.
+   * For image-based PDFs, optional OCR is performed using `ocrmypdf`.
+
+3. **✂️ Chunking**
+
+   * Extracted text is split into overlapping chunks using `RecursiveCharacterTextSplitter`.
+
+4. **🔍 Embedding and Similarity Search**
+
+   * Chunks are embedded with `SentenceTransformer` (`all-MiniLM-L6-v2`).
+   * The input query is also embedded.
+   * Cosine similarity is computed between the query and all chunk embeddings.
+   * Top `k` most similar chunks are selected.
+
+5. **📦 Prompt Construction**
+
+   * A prompt is dynamically constructed:
+
+     ```text
+     Context:
+     [Top-k relevant chunks]
+
+     Question: [User Query]
+     Answer:
+     ```
+
+6. **🤖 LLM Query (Ollama)**
+
+   * The prompt is sent to the Ollama backend (e.g., `llama3` model) at `http://ollama:11434/api/generate`.
+   * A context-aware answer is returned.
+
+---
+
