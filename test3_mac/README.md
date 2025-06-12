@@ -17,7 +17,9 @@ project-root/
 # Install ollama
 ```
 brew install ollama
+ollama pull llama3
 ollama run llama3
+ollama list
 
 ```
 # Docker up and down
@@ -28,13 +30,9 @@ sudo docker ps
 ```
 
 
-# Purge Conflicting Packages
-```
-sudo apt remove docker-buildx-plugin docker-compose-plugin
-sudo apt clean
-sudo apt install -f
-sudo apt install docker-buildx docker-cli docker-compose
-```
+
+
+
 
 
 rag_backend → PORT 8501
