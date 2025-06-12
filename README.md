@@ -23,8 +23,6 @@ flowchart TD
 
 
 ---
-Here's a simplified summary:
-
 **RAG Pipeline**
 
 1. **Upload PDF**
