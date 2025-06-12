@@ -25,6 +25,7 @@ sudo apt install --reinstall docker-buildx-plugin docker-compose-plugin
 ```
 sudo docker compose up --build -d
 sudo docker compose down
+sudo docker ps
 ```
 
 
@@ -37,4 +38,7 @@ sudo apt install docker-buildx docker-cli docker-compose
 ```
 
 
+rag_backend → PORT 8501
+open-webui → PORT 3000
+ollama → PORT 11434
 
