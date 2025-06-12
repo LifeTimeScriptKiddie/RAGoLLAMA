@@ -7,10 +7,10 @@ flowchart TD
     A[📄 PDF Input] --> B[📝 Text Extraction]
     B --> C[🔪 Chunking]
     C --> D[🔢 Embedding]
-    D --> E[🧠 Vector DB (Storage)]
+    D --> E[🧠 Vector DB]
     E --> F[🔍 Similarity Search]
     F --> G[🧾 Prompt Construction]
-    G --> H[🤖 LLM Response (Ollama)]
+    G --> H[🤖 LLM Response]
 
     style A fill:#fef9c3,stroke:#000
     style B fill:#fce7f3,stroke:#000
@@ -20,6 +20,7 @@ flowchart TD
     style F fill:#fcd34d,stroke:#000
     style G fill:#f3e8ff,stroke:#000
     style H fill:#dbeafe,stroke:#000
+
 ```
 
 ---
