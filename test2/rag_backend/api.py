@@ -1,4 +1,3 @@
-
 import requests
 import logging
 from config import OLLAMA_URL, OPEN_WEBUI_URL, HEADERS
