@@ -3,36 +3,23 @@
 
 ```mermaid
 flowchart TD
-    A1[PDF Uploaded via Open WebUI] --> B[File Stored on Volume]
+    A1[PDF Uploaded via Open WebUI] --> B[File Stored in Volume]
     A2[PDF Uploaded via Streamlit Interface] --> B
 
-    B --> C[Text Extraction / OCR (pdf_utils.py)]
-    C --> D[Text Splitting (RecursiveCharacterTextSplitter)]
-    D --> E[Vector Embedding (SentenceTransformer)]
-    E --> F[Vector DB (in-memory or persistent store)]
+    B --> C[Text Extraction or OCR using pdf_utils.py]
+    C --> D[Text Splitting using RecursiveCharacterTextSplitter]
+    D --> E[Embeddings generated via SentenceTransformer]
+    E --> F[Embedded Chunks stored in Vector Database]
 
-    G[User Query from Streamlit] --> H[Query Embedding]
-    H --> I[Top-k Similar Chunk Search]
-    I --> J[Prompt Built with Context]
-    J --> K[Ollama API Called for Completion]
+    G[User enters Query in Streamlit UI] --> H[Query Embedding using SentenceTransformer]
+    H --> I[Top-k Similar Chunks Retrieved from Vector DB]
+    I --> J[Prompt Constructed with Context and Question]
+    J --> K[Prompt sent to Ollama API]
+    K --> L[Response from Model displayed to User]
 
     F --> I
     J --> K
-    K --> L[Answer Returned to User]
 
-    style A1 fill:#d0e1ff,stroke:#3366cc
-    style A2 fill:#d0e1ff,stroke:#3366cc
-    style B fill:#f0f0f0,stroke:#999999
-    style C fill:#fff2cc,stroke:#cc9900
-    style D fill:#fff2cc,stroke:#cc9900
-    style E fill:#d9ead3,stroke:#6aa84f
-    style F fill:#cfe2f3,stroke:#3d85c6
-    style G fill:#d9d2e9,stroke:#8e7cc3
-    style H fill:#d9d2e9,stroke:#8e7cc3
-    style I fill:#cfe2f3,stroke:#3d85c6
-    style J fill:#f9cb9c,stroke:#e69138
-    style K fill:#ead1dc,stroke:#c27ba0
-    style L fill:#d0e0e3,stroke:#6d9eeb
 
 
 ```
