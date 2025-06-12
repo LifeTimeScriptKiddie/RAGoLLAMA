@@ -23,45 +23,21 @@ flowchart TD
 
 
 ---
+Here's a simplified summary:
 
-### ✅ **Step-by-Step Summary of the RAG Pipeline**
+**RAG Pipeline**
 
-1. **📄 PDF Upload**
+1. **Upload PDF**
+	* Upload a PDF to the system.
+2. **Text Extraction / OCR**
+	* Extract text from the PDF if it's text-based, or use OCR (if implemented) for image-based PDFs.
+3. **Chunking**
+	* Split the text into smaller overlapping pieces.
+4. **Embedding + Similarity Search**
+	* Embed chunks and compare them to a query vector to find the top `k` most similar chunks.
+5. **Prompt Construction**
+	* Create a new prompt using the top `k` relevant chunks and the original query.
+6. **LLM Query (Ollama)**
+	* Send the prompt to Ollama's model (e.g., `llama3`) and get a context-aware answer.
 
-   * PDF is uploaded via either **Streamlit** or **Open WebUI** interface.
-
-2. **🧠 Text Extraction / OCR**
-
-   * For text-based PDFs, `pdf_utils.py` extracts text using `PyPDF2`.
-   * For image-based PDFs, optional OCR is performed using `ocrmypdf`.
-
-3. **✂️ Chunking**
-
-   * Extracted text is split into overlapping chunks using `RecursiveCharacterTextSplitter`.
-
-4. **🔍 Embedding and Similarity Search**
-
-   * Chunks are embedded with `SentenceTransformer` (`all-MiniLM-L6-v2`).
-   * The input query is also embedded.
-   * Cosine similarity is computed between the query and all chunk embeddings.
-   * Top `k` most similar chunks are selected.
-
-5. **📦 Prompt Construction**
-
-   * A prompt is dynamically constructed:
-
-     ```text
-     Context:
-     [Top-k relevant chunks]
-
-     Question: [User Query]
-     Answer:
-     ```
-
-6. **🤖 LLM Query (Ollama)**
-
-   * The prompt is sent to the Ollama backend (e.g., `llama3` model) at `http://ollama:11434/api/generate`.
-   * A context-aware answer is returned.
-
----
-
+Let me know if you have any further questions or if there's anything else I can help with!
