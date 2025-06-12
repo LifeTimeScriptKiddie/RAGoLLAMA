@@ -30,17 +30,17 @@ services:
       - host.docker.internal:host-gateway
 
   backend:
-    build: ./rag-backend
-    container_name: rag-backend
+    build: ./rag_backend
+    container_name: rag_backend
     ports:
       - "8501:8501"
     depends_on:
       - ollama
       - open-webui
     volumes:
-      - ./rag-backend:/app
+      - ./rag_backend:/app
     env_file:
-      - ./rag-backend/.env
+      - ./rag_backend/.env
 
 volumes:
   ollama_data:
