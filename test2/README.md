@@ -1,3 +1,5 @@
+
+```
 project-root/
 ├── docker-compose.yml
 ├── .env                   ← Optional: Shared environment config
@@ -11,3 +13,4 @@ project-root/
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   └── .env               ← Backend-specific secrets (optional)
+```
