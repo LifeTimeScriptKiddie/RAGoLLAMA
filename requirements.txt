@@ -1,0 +1,9 @@
+PyPDF2
+pytesseract
+pdf2image
+Pillow
+tqdm
+ocrmypdf
+langchain==0.1.16
+sentence-transformers
+chromadb
