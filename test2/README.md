@@ -23,9 +23,8 @@ sudo apt install --reinstall docker-buildx-plugin docker-compose-plugin
 ```
 # Docker up and down
 ```
-docker-compose up --build -d
-
-docker-compose down
+sudo docker compose up --build -d
+sudo docker compose down
 ```
 
 
