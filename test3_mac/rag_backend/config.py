@@ -3,7 +3,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "http://localhost:3000")
-AUTH_TOKEN = os.getenv("AUTH_TOKEN", "")
-HEADERS = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
+OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "http://open-webui:8080")
+HEADERS = {
+    "Authorization": os.getenv("OPEN_WEBUI_TOKEN", "Bearer dummy_token"),
+    "Content-Type": "application/json"
+}
