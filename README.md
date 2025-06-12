@@ -3,38 +3,37 @@
 
 ```mermaid
 flowchart TD
-    A[PDF Uploaded via Streamlit]
-    B[Extract text using PyPDF2 or OCR fallback]
-    C[Split text using RecursiveCharacterTextSplitter]
-    D[Generate embeddings with SentenceTransformers]
-    E[Store embeddings in vector store]
-    F[User inputs query via Streamlit]
-    G[Embed query using same model]
-    H[Similarity search against vector store]
-    I[Select top K most relevant chunks]
-    J[Construct prompt with context and user query]
-    K[Send prompt to local LLM through Ollama]
-    L[Receive generated answer from LLM]
-    M[Display response in Streamlit]
+    A1[PDF Uploaded via Open WebUI] --> B[File Stored on Volume]
+    A2[PDF Uploaded via Streamlit Interface] --> B
 
-    %% Flow connections
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    F --> G
-    G --> H
-    E --> H
-    H --> I
-    I --> J
-    F --> J
+    B --> C[Text Extraction / OCR (pdf_utils.py)]
+    C --> D[Text Splitting (RecursiveCharacterTextSplitter)]
+    D --> E[Vector Embedding (SentenceTransformer)]
+    E --> F[Vector DB (in-memory or persistent store)]
+
+    G[User Query from Streamlit] --> H[Query Embedding]
+    H --> I[Top-k Similar Chunk Search]
+    I --> J[Prompt Built with Context]
+    J --> K[Ollama API Called for Completion]
+
+    F --> I
     J --> K
-    K --> L
-    L --> M
+    K --> L[Answer Returned to User]
 
-    %% Styling for clarity
-    classDef step fill:#f0f0f0,stroke:#333,stroke-width:1px;
-    class A,B,C,D,E,F,G,H,I,J,K,L,M step;
+    style A1 fill:#d0e1ff,stroke:#3366cc
+    style A2 fill:#d0e1ff,stroke:#3366cc
+    style B fill:#f0f0f0,stroke:#999999
+    style C fill:#fff2cc,stroke:#cc9900
+    style D fill:#fff2cc,stroke:#cc9900
+    style E fill:#d9ead3,stroke:#6aa84f
+    style F fill:#cfe2f3,stroke:#3d85c6
+    style G fill:#d9d2e9,stroke:#8e7cc3
+    style H fill:#d9d2e9,stroke:#8e7cc3
+    style I fill:#cfe2f3,stroke:#3d85c6
+    style J fill:#f9cb9c,stroke:#e69138
+    style K fill:#ead1dc,stroke:#c27ba0
+    style L fill:#d0e0e3,stroke:#6d9eeb
+
 
 ```
 
