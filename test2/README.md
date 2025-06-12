@@ -1,4 +1,4 @@
-
+# Folder Structure
 ```
 project-root/
 ├── docker-compose.yml
@@ -15,9 +15,27 @@ project-root/
 │   └── .env               ← Backend-specific secrets (optional)
 ```
 
+# Reinstall Docker's official plugins (if needed)
 
+```
+sudo apt install --reinstall docker-buildx-plugin docker-compose-plugin
+
+```
+# Docker up and down
+```
 docker-compose up --build -d
 
 docker-compose down
+```
+
+
+# Purge Conflicting Packages
+```
+sudo apt remove docker-buildx-plugin docker-compose-plugin
+sudo apt clean
+sudo apt install -f
+sudo apt install docker-buildx docker-cli docker-compose
+```
+
 
 
