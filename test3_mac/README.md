@@ -17,6 +17,7 @@ project-root/
 # Install ollama
 ```
 brew install ollama
+ollama serve
 ollama pull llama3
 ollama pull codellama:7b           # for code generation
 ollama pull mistral                # fast general-purpose
