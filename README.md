@@ -37,3 +37,11 @@ flowchart TD
 	* Create a new prompt using the top `k` relevant chunks and the original query.
 6. **LLM Query (Ollama)**
 	* Send the prompt to Ollama's model (e.g., `llama3`) and get a context-aware answer.
+
+
+---23 JUN 2025---
+
+Next Goal:
+1. adopt docling
+2. adopt CAG for speed https://medium.com/@hamzaennaffati98/cache-augmented-generation-cag-vs-retrieval-augmented-generation-rag-7b668e3a973b
+   
