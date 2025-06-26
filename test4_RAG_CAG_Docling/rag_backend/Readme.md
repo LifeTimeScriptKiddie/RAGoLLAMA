@@ -32,13 +32,13 @@ E --> F[Streamlit server starts]
 F --> G[main.py runs in container]
 
 G --> H[User uploads PDF via UI]
-H --> I[Docling chunks PDF (pdf_utils.py)]
+H --> I["Docling chunks PDF (pdf_utils.py)"]
 
-I --> J[Embed chunks: Ollama or local model (embed_utils.py)]
+I --> J["Embed chunks: Ollama or local model (embed_utils.py)"]
 J --> K[User types question]
 
 K --> L[Find top-k similar chunks]
-L --> M[Send prompt to query_ollama() in api.py]
+L --> M["Send prompt to query_ollama() in api.py"]
 M --> N[Ollama responds to query]
 
 N --> O[main.py returns answer + context to UI]
