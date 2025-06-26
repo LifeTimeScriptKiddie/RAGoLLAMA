@@ -47,18 +47,19 @@ N --> O[main.py returns answer + context to UI]
 
 ⸻
 
-Breakdown by Script
+### 📄 Breakdown by Script
 
-Script	Role
-main.py	Entry point launched by Streamlit; handles UI and logic orchestration
-pdf_utils.py	Converts PDF to chunks using Docling and optionally stores in Chroma
-embed_utils.py	Embeds text chunks via SentenceTransformer (or Ollama)
-api.py	Sends prompts to Ollama and optionally Open WebUI
-config.py	Loads API URLs and tokens from .env
-uploader.py	Optional CLI tool for batch uploading to WebUI
-requirements.txt	Declares all dependencies for pip install
-Dockerfile	Defines the image build (Python base, install, expose, CMD)
-docker-compose.yml	Starts and connects all containers: Ollama, backend, WebUI
+| Script              | Role                                                                 |
+|---------------------|----------------------------------------------------------------------|
+| `main.py`           | Entry point launched by Streamlit; handles UI and logic orchestration |
+| `pdf_utils.py`      | Converts PDF to chunks using Docling and optionally stores in Chroma |
+| `embed_utils.py`    | Embeds text chunks via SentenceTransformer (or Ollama)               |
+| `api.py`            | Sends prompts to Ollama and optionally Open WebUI                    |
+| `config.py`         | Loads API URLs and tokens from `.env`                                |
+| `uploader.py`       | Optional CLI tool for batch uploading to WebUI                       |
+| `requirements.txt`  | Declares all dependencies for `pip install`                          |
+| `Dockerfile`        | Defines the image build (Python base, install, expose, CMD)          |
+| `docker-compose.yml`| Starts and connects all containers: Ollama, backend, WebUI           |
 
 
 ⸻
