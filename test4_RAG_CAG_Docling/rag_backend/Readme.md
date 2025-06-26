@@ -91,6 +91,8 @@ ollama list
 Start or Stop the App
 
 sudo docker compose up --build -d
+docker-compose pull
+docker-compose up -d
 sudo docker compose down
 sudo docker ps
 
