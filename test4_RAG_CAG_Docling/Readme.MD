@@ -1,10 +1,9 @@
 
-# BLUF
+Working on followings,
 
-Working on following.
-⸻
 
-From test3_mac
+# From test3_mac
+
 - Layer	Tool / Method
   Document Parsing	PyPDF2 + OCR + Manual Split
   UI	Streamlit
@@ -14,9 +13,7 @@ From test3_mac
   Speed Tradeoff	Long wait due to full text tokenization
 
 
-⸻
-
-To test4_RAG_CAG_Docling - Target Architecture
+# To test4_RAG_CAG_Docling - Target Architecture
 
 Layer	Replace with / Add
 Document Parsing	-  DoclingLoader
@@ -27,17 +24,13 @@ UI	-  Same Streamlit UI
 Speed Tradeoff	-  Only relevant chunks sent to LLM (fast)
 
 
-⸻
-
-“RAG-CAG” means:
+# “RAG-CAG” means:
 	•	Only the top-k retrieved chunks (from Chroma) are passed.
 	•	LangChain handles chunk retrieval + question injection + optional citation formatting.
 	•	Faster than sending the whole document or 3k+ tokens to Ollama.
 	•	More accurate than manual string injection.
 
-⸻
-
-Implementation Plan
+# Implementation Plan
 
 File	Change
 pdf_utils.py	Replace extract_text_from_pdf() and split_text_into_chunks() with build_vectordb_from_pdf() using DoclingLoader
