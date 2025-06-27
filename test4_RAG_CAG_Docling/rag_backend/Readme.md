@@ -1,105 +1,113 @@
-
-✅ Final README.md
-
-# 🧠 Local RAG Chatbot with Ollama, Docling, and Streamlit
-
-This project is a fully local Retrieval-Augmented Generation (RAG) system using:
-- `Ollama` for running LLMs
-- `Docling` for smart PDF/Doc chunking
-- `sentence-transformers` or `Chroma` for retrieval
-- `Streamlit` for the front-end UI
-- `Open WebUI` for optional document management
-
----
-
-## 📁 Project Structure
-Here’s a step-by-step Mermaid diagram to show how your Python scripts work inside Docker, from build time to runtime, based on your project structure.
+Here’s your ✅ Final README.md — cleaned up, modular, and updated to reflect Streamlit and non-Streamlit use cases, Open WebUI, and flexible embedding modes.
 
 ⸻
 
-Mermaid: Docker Build & Execution Flow
+✅ Local RAG Chatbot with Ollama, Docling, and Open WebUI
+
+This project is a fully local Retrieval-Augmented Generation (RAG) system using:
+	•	🧠 Ollama for running open-source LLMs locally
+	•	📄 Docling for smart PDF/Markdown/Doc chunking
+	•	🔍 sentence-transformers or Ollama for embeddings
+	•	🌐 Open WebUI as the optional document/chat frontend
+	•	⚙️ Optional Streamlit app (main.py) for lightweight local UI
+
+⸻
+
+📁 Project Structure
+
+project-root/
+├── api.py              # Prompt handler for Ollama / Open WebUI
+├── config.py           # Loads .env configs
+├── doc_processor.py    # Uses Docling to chunk docs
+├── vectorizer.py       # Embeds chunks using local SentenceTransformer
+├── ollama_embed.py     # Optional: Ollama-based LangChain embedding wrapper
+├── uploader.py         # Syncs files to Open WebUI knowledge base
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+└── .env
+
+
+⸻
+
+🧠 Modes of Operation
+
+1. Streamlit UI (for testing)
+
+streamlit run main.py
+
+2. Open WebUI + CLI Backend
+
+Use uploader.py, doc_processor.py, and api.py to embed docs and sync with WebUI.
+
+⸻
+
+🔄 Architecture Diagram
+
+✅ Docker Build & Execution Flow
 
 ```mermaid
 graph TD
 
-A[User runs: docker-compose up] --> B[Dockerfile in rag-backend]
-
-B --> C[Build Image: Install Python + Requirements]
+A[User runs: docker-compose up] --> B[Dockerfile in backend]
+B --> C[Install Python + Requirements]
 C --> D[Copy all source files into /app]
-D --> E[Set CMD: streamlit run main.py]
+D --> E[Set CMD: python uploader.py or Streamlit]
 
-E --> F[Streamlit server starts]
-F --> G[main.py runs in container]
-
-G --> H[User uploads PDF via UI]
-H --> I["Docling chunks PDF (pdf_utils.py)"]
-
-I --> J["Embed chunks: Ollama or local model (embed_utils.py)"]
-J --> K[User types question]
-
-K --> L[Find top-k similar chunks]
-L --> M["Send prompt to query_ollama() in api.py"]
-M --> N[Ollama responds to query]
-
-N --> O[main.py returns answer + context to UI]
+E --> F[Streamlit or CLI script runs]
+F --> G[PDF/doc loaded via Docling (doc_processor.py)]
+G --> H[Chunks embedded via vectorizer.py or ollama_embed.py]
+H --> I[User query handled by api.py]
+I --> J[Ollama queried and response returned]
 ```
 
+⸻
+
+📄 Breakdown by Script
+
+Script	Role
+main.py	Optional Streamlit front-end UI (can be removed)
+doc_processor.py	Loads documents using Docling
+vectorizer.py	Embeds using local SentenceTransformer
+ollama_embed.py	LangChain-compatible wrapper to use Ollama’s embedding API
+api.py	Queries Ollama or Open WebUI
+config.py	Loads .env settings
+uploader.py	Uploads .pdf, .md, .docx, .jpg, etc. to Open WebUI
+requirements.txt	Python dependencies
+Dockerfile	Backend container image
+docker-compose.yml	Optional container orchestration
+
 
 ⸻
 
-### 📄 Breakdown by Script
+🧠 Install Ollama
 
-| Script              | Role                                                                 |
-|---------------------|----------------------------------------------------------------------|
-| `main.py`           | Entry point launched by Streamlit; handles UI and logic orchestration |
-| `pdf_utils.py`      | Converts PDF to chunks using Docling and optionally stores in Chroma |
-| `embed_utils.py`    | Embeds text chunks via SentenceTransformer (or Ollama)               |
-| `api.py`            | Sends prompts to Ollama and optionally Open WebUI                    |
-| `config.py`         | Loads API URLs and tokens from `.env`                                |
-| `uploader.py`       | Optional CLI tool for batch uploading to WebUI                       |
-| `requirements.txt`  | Declares all dependencies for `pip install`                          |
-| `Dockerfile`        | Defines the image build (Python base, install, expose, CMD)          |
-| `docker-compose.yml`| Starts and connects all containers: Ollama, backend, WebUI           |
-
-
-⸻
-
-Would you like a second diagram showing LangChain mode vs pure local mode?
----
-
-## 🧠 Install Ollama (macOS example)
-
-```bash
 brew install ollama
 ollama serve
 
-# Pull some models
+# Pull desired models
 ollama pull llama3
-ollama pull codellama:7b           # for code generation
-ollama pull mistral                # fast general-purpose
-ollama pull phi3                   # small and performant
+ollama pull mistral
+ollama pull codellama:7b
+ollama pull phi3
 
-# Run a model manually
+# Run a model
 ollama run llama3
-ollama list
 
 
 ⸻
 
 🐳 Docker Commands
 
-Start or Stop the App
+# Build and run
+docker compose up --build -d
 
-sudo docker compose up --build -d
-docker-compose pull
-docker-compose up -d
-sudo docker compose down
-sudo docker ps
+# Stop
+docker compose down
 
-Wipe Everything (Clean Reset)
-
-sudo docker compose down --volumes --remove-orphans
-sudo docker system prune -af --volumes
+# Clean everything
+docker compose down --volumes --remove-orphans
+docker system prune -af --volumes
 
 
 ⸻
@@ -114,14 +122,23 @@ Ollama API	http://localhost:11434
 
 ⸻
 
-✅ Notes
-	•	.env files configure ports, model names, and tokens.
-	•	main.py uses LangChain OR pure local embedding depending on mode.
-	•	Ollama must be running and have models pulled before querying.
-	•	Optional: You can connect Open WebUI to your own knowledge bases.
+⚙️ .env Configuration
+
+Example .env:
+
+OLLAMA_URL=http://localhost:11434
+OPEN_WEBUI_URL=http://localhost:3000
+OPEN_WEBUI_TOKEN=Bearer your_openwebui_token
+EMBED_MODEL=all-MiniLM-L6-v2
+
 
 ⸻
 
-Happy hacking!
+✅ Notes
+	•	Works fully offline (as long as Ollama and models are pre-pulled).
+	•	Supports all major doc types: .pdf, .md, .docx, .txt, .html, .csv, .jpg, .png, etc.
+	•	Use vectorizer.py for local embedding OR ollama_embed.py to use Ollama.
+	•	main.py is optional — you can fully operate through CLI and Open WebUI.
+	•	Flexible and extendable for LangChain, Flask, FastAPI, or scheduled pipelines.
 
-Let me know if you want a toggle flag in the app for `LangChain mode` vs `Local mode`, or a diagram (Mermaid or image) showing architecture.
+⸻

@@ -1,30 +1,36 @@
 # Use a minimal Python 3.10 image
 FROM python:3.10-slim
 
-# Environment optimizations
+# Avoid writing .pyc files and enable unbuffered stdout
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    TZ=America/New_York
 
-# Create working directory
+# Set working directory
 WORKDIR /app
 
-# Install system-level dependencies
+# Install system tools including OCR and cron
 RUN apt-get update && apt-get install -y \
     build-essential \
+    poppler-utils \
+    tesseract-ocr \
+    ocrmypdf \
+    cron \
     curl \
+    tzdata \
  && rm -rf /var/lib/apt/lists/*
 
-# Only copy requirements first to leverage Docker cache
+# Install Python dependencies
 COPY requirements.txt .
-
-# Install Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all application source files
+# Copy app files
 COPY . .
 
-# Expose default Streamlit port
-EXPOSE 8501
+# Copy crontab and register it
+COPY crontab.txt /etc/cron.d/uploader-cron
+RUN chmod 0644 /etc/cron.d/uploader-cron && \
+    crontab /etc/cron.d/uploader-cron
 
-# Start Streamlit app (main.py is your entry point)
-CMD ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Run cron in foreground (keeps container alive)
+CMD ["cron", "-f"]

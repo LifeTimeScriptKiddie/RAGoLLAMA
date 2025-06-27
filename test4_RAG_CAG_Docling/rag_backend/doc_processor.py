@@ -1,12 +1,14 @@
-#from PyPDF2 import PdfReader
-#from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pathlib import Path
-#from typing import List
 import subprocess
 import logging
 from langchain_docling.loader import DoclingLoader, ExportType
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
+from api import get_ollama_embedding  # You must define or import this function
+#from langchain.embeddings import OpenAIEmbeddings
+#from PyPDF2 import PdfReader
+#from langchain.text_splitter import RecursiveCharacterTextSplitter
+#from typing import List
+
 
 
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +23,19 @@ def build_vectordb_from_pdf(pdf_path: Path) -> Chroma:
     embeddings = OllamaEmbeddings(model="nomic-embed-text")  # Or any Ollama-supported embedding model
     vectordb = Chroma.from_documents(docs, embeddings)
     return vectordb
+    embeddings = get_ollama_embedding()
+    vectordb = Chroma.from_documents(docs, embeddings)
+    return vectordb
 logging.basicConfig(level=logging.INFO)
+
+def ocr_pdf(input_path: Path, output_path: Path) -> bool:
+    """Convert image-based PDF to text-searchable PDF using OCRmyPDF."""
+    try:
+        subprocess.run(["ocrmypdf", str(input_path), str(output_path)], check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error(f"OCR failed: {e}")
+        return False
 
 # def extract_text_from_pdf(pdf_path: Path) -> str:
 #     """Extract all text from a PDF file. Falls back to OCR if needed."""
@@ -51,12 +65,4 @@ logging.basicConfig(level=logging.INFO)
 #     docs = splitter.create_documents([text])
 #     return [doc.page_content for doc in docs]
 
-def ocr_pdf(input_path: Path, output_path: Path) -> bool:
-    """Convert image-based PDF to text-searchable PDF using OCRmyPDF."""
-    try:
-        subprocess.run(["ocrmypdf", str(input_path), str(output_path)], check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        logging.error(f"OCR failed: {e}")
-        return False
 
