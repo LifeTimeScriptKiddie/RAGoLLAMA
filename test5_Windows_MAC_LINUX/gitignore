@@ -1,0 +1,38 @@
+# === Python Bytecode ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# === Virtual Environments ===
+env/
+venv/
+.venv/
+
+# === Environment Configs ===
+.env
+.env.*
+
+# === Logs & Uploaded State ===
+*.log
+*.log.*
+upload.log
+docs/uploaded_files.txt
+
+# === Application Data ===
+docs/__processed__/
+docs/__temp__/
+docs/*.npz
+*.sqlite3
+*.db
+
+# === OS / Editor Files ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# === Docker ===
+*.pid
+docker-compose.override.yml
