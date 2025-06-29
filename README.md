@@ -1,47 +1,53 @@
 
-### 📈 Mermaid Diagram: Detailed RAG Pipeline
 
+ Updated Mermaid Diagram: RAG-CAG Pipeline (test4_RAG_CAG_Docling)
 ```mermaid
 flowchart TD
-    A1[PDF Uploaded via Open WebUI] --> B[File Stored in Volume]
-    A2[PDF Uploaded via Streamlit Interface] --> B
 
-    B --> C[Text Extraction or OCR using pdf_utils.py]
-    C --> D[Text Splitting using RecursiveCharacterTextSplitter]
-    D --> E[Embeddings generated via SentenceTransformer]
-    E --> F[Embedded Chunks stored in Vector Database]
+A1[PDF, DOCX, MD dropped into ./docs] --> B[DoclingLoader parses into smart chunks]
+B --> C[Chunks embedded via SentenceTransformer or Ollama]
+C --> D[Vector embeddings stored in Chroma DB]
 
-    G[User enters Query in Streamlit UI] --> H[Query Embedding using SentenceTransformer]
-    H --> I[Top-k Similar Chunks Retrieved from Vector DB]
-    I --> J[Prompt Constructed with Context and Question]
-    J --> K[Prompt sent to Ollama API]
-    K --> L[Response from Model displayed to User]
+E[User query via WebUI or CLI] --> F[LangChain retrieves top-k similar chunks]
+F --> G[LangChain constructs prompt using CAG logic]
+G --> H[Prompt sent to Ollama via LangChain-compatible wrapper]
+H --> I[Ollama returns context-aware answer]
 
-    F --> I
-    J --> K
+D --> F
 ```
 
+⸻
 
----
-**RAG Pipeline**
+RAG-CAG Pipeline Explained
 
-1. **Upload PDF**
-	* Upload a PDF to the system.
-2. **Text Extraction / OCR**
-	* Extract text from the PDF if it's text-based, or use OCR (if implemented) for image-based PDFs.
-3. **Chunking**
-	* Split the text into smaller overlapping pieces.
-4. **Embedding + Similarity Search**
-	* Embed chunks and compare them to a query vector to find the top `k` most similar chunks.
-5. **Prompt Construction**
-	* Create a new prompt using the top `k` relevant chunks and the original query.
-6. **LLM Query (Ollama)**
-	* Send the prompt to Ollama's model (e.g., `llama3`) and get a context-aware answer.
+Step	Description
+1. Drop File	User drops files into ./docs folder (.pdf, .docx, .md, .jpg, etc.)
+2. Parsing	DoclingLoader parses with layout awareness and format support
+3. Embedding	Uses either local sentence-transformers or ollama_embed.py
+4. Vector DB	Embeddings stored in Chroma for efficient similarity search
+5. User Query	Query received via Open WebUI or CLI tool
+6. Retrieval	LangChain fetches most similar k-chunks
+7. Prompt Build	Combines query + relevant chunks using RAG_CAG template
+8. LLM Response	Ollama model generates answer (e.g., llama3, phi3)
+9. Return	Final response shown via CLI or WebUI
 
 
----23 JUN 2025---
+⸻
 
-Next Goal:
-1. adopt docling
-2. adopt CAG for speed https://medium.com/@hamzaennaffati98/cache-augmented-generation-cag-vs-retrieval-augmented-generation-rag-7b668e3a973b
-   
+Evolution: test1 → test4 Breakdown
+
+Version	Parsing	Embedding	Retrieval	Prompting	Output
+test1	PyPDF2 + ocrmypdf	None (full doc sent)	None (manual)	Full text prompt	Slow
+test2	Manual chunking + OCR	sentence-transformers	None	Top-N chunks injected manually	Faster
+test3	Same as test2	sentence-transformers	Basic vector search (numpy)	Manual prompt string	Partial RAG
+test4	DoclingLoader	Chroma + LangChain wrapper	Top-k via LangChain retriever	LangChain RAG_CAG Chain	Context-aware + fast
+
+
+⸻
+
+Next Goals
+	1.	Docling adopted — layout-preserving, multi-format parsing (already integrated)
+	2.	Adopt CAG (Cache-Augmented Generation):
+	•	Cache frequent questions/chunks
+	•	Use hybrid similarity metrics
+	•	Explore LRU cache or Redis integration
