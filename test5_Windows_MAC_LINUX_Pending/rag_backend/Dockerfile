@@ -32,4 +32,5 @@ CMD bash -c "\
     ollama serve & \
     sleep 5 && \
     ollama pull mistral && \
-    python main.py"
+    python3 main.py"
+    
