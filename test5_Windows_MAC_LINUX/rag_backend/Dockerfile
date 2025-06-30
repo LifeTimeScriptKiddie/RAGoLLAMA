@@ -22,10 +22,11 @@ WORKDIR /app
 # Copy all app code
 COPY . .
 
-# Install Python dependencies with system break override
-RUN pip install --upgrade pip && \
-    pip install --break-system-packages -r requirements.txt
 
+# Pre-install to override system version without uninstall attempt
+RUN pip install --upgrade pip && \
+    pip install --break-system-packages --ignore-installed blinker && \
+    pip install --break-system-packages -r requirements.txt
 # Start Ollama in background, pull models, then launch your Python app
 CMD bash -c "\
     ollama serve & \
