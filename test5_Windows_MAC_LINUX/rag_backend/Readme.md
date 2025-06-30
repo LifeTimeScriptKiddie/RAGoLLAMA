@@ -66,7 +66,7 @@ docker-compose.yml	Brings up Open WebUI, Ollama, and the backend container
 
 ⸻
 
-🧠 Ollama Setup
+🧠 Ollama Setup. --> This will automatically pulled in. 
 
 brew install ollama
 ollama serve
@@ -87,10 +87,22 @@ ollama run llama3
 
 # Build and start everything in the background
 docker compose up --build -d
-
 # Stop services
 docker compose down
-
+# List running containers
+docker ps
+# Access a container shell
+docker exec -it <container_name> bash (or sh)
+# Run a one-time command
+docker exec -it <container_name> <command>
+# Restart a container
+docker restart <container_name>
+# View container logs
+docker logs <container_name>
+# Stop a container
+docker stop <container_name>
+# Remove a container
+docker rm -f <container_name>
 # Clean everything
 docker compose down --volumes --remove-orphans
 docker system prune -af --volumes
