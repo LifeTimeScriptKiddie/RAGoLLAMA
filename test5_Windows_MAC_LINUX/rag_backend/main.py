@@ -7,6 +7,7 @@ def run_command(cmd):
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Command failed: {e}")
+        sys.exit(1)
 
 def setup():
     print("[*] Setting up virtual environment and installing dependencies...")
@@ -21,10 +22,12 @@ def setup():
         pip_exec = "venv/bin/pip"
         python_exec = "venv/bin/python"
 
-    # Ensure pip exists
+    # Fallback: install pip manually if missing
     if not Path(pip_exec).exists():
-        print("[*] Pip not found in venv. Bootstrapping with ensurepip...")
-        run_command([python_exec, "-m", "ensurepip", "--upgrade"])
+        print("[*] Pip not found. Bootstrapping with get-pip.py...")
+        run_command(["curl", "-sSLo", "get-pip.py", "https://bootstrap.pypa.io/get-pip.py"])
+        run_command([python_exec, "get-pip.py"])
+        print("[+] Pip installed successfully.")
 
     run_command([pip_exec, "install", "--upgrade", "pip"])
     run_command([pip_exec, "install", "-r", "requirements.txt"])
