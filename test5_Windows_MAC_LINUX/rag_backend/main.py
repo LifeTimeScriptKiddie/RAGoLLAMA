@@ -21,6 +21,11 @@ def setup():
         pip_exec = "venv/bin/pip"
         python_exec = "venv/bin/python"
 
+    # Ensure pip exists
+    if not Path(pip_exec).exists():
+        print("[*] Pip not found in venv. Bootstrapping with ensurepip...")
+        run_command([python_exec, "-m", "ensurepip", "--upgrade"])
+
     run_command([pip_exec, "install", "--upgrade", "pip"])
     run_command([pip_exec, "install", "-r", "requirements.txt"])
 
