@@ -22,10 +22,12 @@ RUN apt-get update && \
     cron \
     curl \
     tzdata \
-    && rm -rf /var/lib/apt/lists/*
+    && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && dpkg-reconfigure -f noninteractive tzdata && \
+    rm -rf /var/lib/apt/lists/*
 
-# Ensure python3 points to python3.10
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
+# Ensure python3 and python point to python3.10
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
