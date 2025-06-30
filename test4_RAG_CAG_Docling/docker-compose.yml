@@ -32,6 +32,7 @@ services:
       - open-webui
     volumes:
       - ./rag_backend:/app
+      - ./rag_backend/docs:/app/docs  # Mounts host's docs into container
     env_file:
       - ./rag_backend/.env
     extra_hosts:
