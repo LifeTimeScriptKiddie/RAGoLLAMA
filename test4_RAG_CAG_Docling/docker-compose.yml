@@ -10,6 +10,14 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    command: >
+      bash -c "
+        ollama pull llama3 &&
+        ollama pull mistral &&
+        ollama pull codellama &&
+        ollama pull gemma &&
+        ollama pull orca-mini &&
+        ollama serve"
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
