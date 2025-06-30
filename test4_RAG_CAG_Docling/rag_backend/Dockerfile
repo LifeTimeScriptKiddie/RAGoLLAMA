@@ -29,8 +29,8 @@ COPY . .
 
 # Copy crontab and register it
 COPY crontab.txt /etc/cron.d/uploader-cron
-RUN chmod 0644 /etc/cron.d/uploader-cron && \
-    crontab /etc/cron.d/uploader-cron
+RUN chmod 0644 /etc/cron.d/uploader-cron \
+    && touch /var/log/cron.log
 
 # Run cron in foreground (keeps container alive)
 CMD ["cron", "-f"]
