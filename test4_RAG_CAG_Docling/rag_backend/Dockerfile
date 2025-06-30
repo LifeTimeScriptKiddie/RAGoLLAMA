@@ -1,7 +1,7 @@
-# Use a minimal Python 3.10 image
-FROM python:3.10-slim
+# Use Ubuntu as the base image
+FROM ubuntu:22.04
 
-# Avoid writing .pyc files and enable unbuffered stdout
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     TZ=America/New_York
@@ -9,8 +9,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set working directory
 WORKDIR /app
 
-# Install system tools including OCR and cron
-RUN apt-get update && apt-get install -y \
+# Install system packages and Python 3.10
+RUN apt-get update && \
+    apt-get install -y \
+    python3.10 \
+    python3.10-venv \
+    python3-pip \
     build-essential \
     poppler-utils \
     tesseract-ocr \
@@ -18,19 +22,25 @@ RUN apt-get update && apt-get install -y \
     cron \
     curl \
     tzdata \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
+
+# Ensure python3 points to python3.10
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
+
+# Upgrade pip
+RUN python -m pip install --upgrade pip
 
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app files
+# Copy application files
 COPY . .
 
-# Copy crontab and register it
+# Setup cron job
 COPY crontab.txt /etc/cron.d/uploader-cron
-RUN chmod 0644 /etc/cron.d/uploader-cron \
-    && touch /var/log/cron.log
+RUN chmod 0644 /etc/cron.d/uploader-cron && \
+    touch /var/log/cron.log
 
-# Run cron in foreground (keeps container alive)
+# Start cron in foreground
 CMD ["cron", "-f"]
