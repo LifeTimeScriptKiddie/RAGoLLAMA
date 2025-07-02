@@ -4,13 +4,15 @@ FROM ubuntu:22.04
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    TZ=America/New_York
+    TZ=America/New_York \
+    DEBIAN_FRONTEND=noninteractive
 
 # Set working directory
 WORKDIR /app
 
-# Install system packages and Python 3.10
-RUN apt-get update && \
+# Install tzdata non-interactively
+RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
+    apt-get update && \
     apt-get install -y \
     python3.10 \
     python3.10-venv \
@@ -21,9 +23,11 @@ RUN apt-get update && \
     ocrmypdf \
     cron \
     curl \
-    tzdata \
-    && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && dpkg-reconfigure -f noninteractive tzdata && \
+    tzdata && \
+    echo $TZ > /etc/timezone && \
+    dpkg-reconfigure -f noninteractive tzdata && \
     rm -rf /var/lib/apt/lists/*
+
 
 # Ensure python3 and python point to python3.10
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 && \
@@ -39,7 +43,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY . .
 
-# Setup cron job¬
+# Setup cron job
 COPY crontab.txt /etc/cron.d/uploader-cron
 RUN chmod 0644 /etc/cron.d/uploader-cron && \
     touch /var/log/cron.log
