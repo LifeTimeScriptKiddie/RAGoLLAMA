@@ -9,14 +9,18 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    # This command starts the server in the background, waits 5 seconds for it to initialize,
+    # pulls the required models, and then uses 'wait' to keep the container running.
     command: >
-      bash -c "
+      sh -c "
+        ollama serve &
+        sleep 5 &&
         ollama pull llama3 &&
         ollama pull mistral &&
         ollama pull codellama &&
         ollama pull gemma &&
         ollama pull orca-mini &&
-        ollama serve"
+        wait"
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
@@ -24,12 +28,10 @@ services:
     ports:
       - "3000:8080"
     environment:
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
       - openwebui_data:/app/backend/data
     restart: unless-stopped
-    extra_hosts:
-      - host.docker.internal:host-gateway
 
   rag-backend:
     build: ./rag_backend
@@ -42,8 +44,6 @@ services:
       - ./rag_backend/docs:/app/docs  # Mounts host's docs into container
     env_file:
       - ./rag_backend/.env
-    extra_hosts:
-      - host.docker.internal:host-gateway
     restart: unless-stopped
     command: cron -f  # runs cron in foreground (uploads run at 2 AM)
 
