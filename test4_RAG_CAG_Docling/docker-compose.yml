@@ -9,10 +9,12 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    # Override the entrypoint to run a shell, so we can execute a script.
+    entrypoint: sh
     # This command starts the server in the background, waits 5 seconds for it to initialize,
     # pulls the required models, and then uses 'wait' to keep the container running.
     command: >
-      sh -c "
+      -c "
         ollama serve &
         sleep 5 &&
         ollama pull llama3 &&
