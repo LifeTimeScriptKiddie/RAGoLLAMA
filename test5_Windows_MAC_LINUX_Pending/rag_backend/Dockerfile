@@ -34,3 +34,4 @@ CMD bash -c "\
     ollama pull mistral && \
     python3 main.py"
     
+    

@@ -39,7 +39,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY . .
 
-# Setup cron job
+# Setup cron job¬
 COPY crontab.txt /etc/cron.d/uploader-cron
 RUN chmod 0644 /etc/cron.d/uploader-cron && \
     touch /var/log/cron.log

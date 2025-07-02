@@ -1,11 +1,15 @@
 import requests
 import logging
 from typing import Union, Dict
-from config import OLLAMA_URL, OPEN_WEBUI_URL, HEADERS
+from config import OLLAMA_URL, OPEN_WEBUI_URL, HEADERS  # Assuming HEADERS contains authorization, e.g., {"Authorization": "Bearer <token>"}
 
 logging.basicConfig(level=logging.INFO)
 
 DEFAULT_TIMEOUT = 10  # seconds
+
+# Example of how HEADERS might be defined in config.py (for context):
+# import os
+# HEADERS = {"Authorization": f"Bearer {os.environ.get('OPEN_WEBUI_API_KEY')}"}
 
 
 def query_ollama(prompt: str, model: str = "llama3") -> str:
@@ -25,7 +29,7 @@ def query_ollama(prompt: str, model: str = "llama3") -> str:
         res.raise_for_status()
         return res.json().get("response", "")
     except requests.RequestException as e:
-        logging.error(f"Ollama query failed: {e}")
+        logging.error(f"Ollama query failed: {type(e).__name__}: {e}")
         return f"Error: {e}"
 
 
@@ -45,7 +49,7 @@ def query_open_webui(query: str, model: str) -> Union[Dict, str]:
         res.raise_for_status()
         return res.json()
     except requests.RequestException as e:
-        logging.error(f"Open WebUI query failed: {e}")
+        logging.error(f"Open WebUI query failed: {type(e).__name__}: {e}")
         return f"Error: {e}"
 
 
@@ -58,15 +62,17 @@ def upload_file_to_knowledge(knowledge_id: str, filepath: str) -> Union[Dict, st
     try:
         with open(filepath, "rb") as f:
             files = {"file": f}
-            headers = {"Authorization": HEADERS.get("Authorization", "")}
+            # Use the imported HEADERS directly, handling potential missing key
+            auth_header = HEADERS.get("Authorization")
+            if not auth_header:
+                logging.warning("Authorization header not found in HEADERS.")
             logging.info(f"Uploading '{filepath}' to knowledge base '{knowledge_id}'")
-            res = requests.post(url, headers=headers, files=files, timeout=DEFAULT_TIMEOUT)
+            res = requests.post(url, headers=HEADERS, files=files, timeout=DEFAULT_TIMEOUT)
             res.raise_for_status()
             return res.json()
     except FileNotFoundError:
-        error_msg = f"File not found: {filepath}"
-        logging.error(error_msg)
-        return f"Error: {error_msg}"
+        logging.error(f"File not found: {filepath}")
+        return f"Error: File not found: {filepath}"
     except requests.RequestException as e:
-        logging.error(f"File upload failed: {e}")
-        return f"Error: {e}"
+        logging.error(f"File upload failed: {type(e).__name__}: {e}")
+        return f"Error: {type(e).__name__}: {e}"

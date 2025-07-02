@@ -26,6 +26,7 @@ docs/__temp__/
 docs/*.npz
 *.sqlite3
 *.db
+docs/
 
 # === OS / Editor Files ===
 .DS_Store
