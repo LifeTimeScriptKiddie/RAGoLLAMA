@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   ollama:
     image: ollama/ollama:latest
@@ -9,27 +11,27 @@ services:
     depends_on: [ollama]
     ports: ["3000:8080"]
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - "OLLAMA_BASE_URL=http://ollama:11434"
     volumes: [openwebui_data:/app/backend/data]
 
   financial_advisor:
-    build: ./financial_advisor
-     context: .
-     dockerfile: ./financial_advisor/Dockerfile
+    build:
+      context: .
+      dockerfile: ./financial_advisor/Dockerfile
     depends_on: [ollama]
     ports: ["8501:8501"]
     volumes: [shared_models:/app/data]
 
   market_researcher:
-    build: ./market_researcher
-     context: .
-     dockerfile: ./market_researcher/Dockerfile
+    build:
+      context: .
+      dockerfile: ./market_researcher/Dockerfile
     depends_on: [ollama]
     ports: ["8502:8501"]
     volumes: [shared_models:/app/data]
 
   turborag:
-    build: ./turborag
+    build:
       context: .
       dockerfile: ./turborag/Dockerfile
     depends_on: [ollama]
