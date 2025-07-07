@@ -4,7 +4,10 @@ services:
   ollama:
     image: ollama/ollama:latest
     ports: ["11434:11434"]
-    volumes: [shared_models:/root/.ollama]
+    volumes:
+      - shared_models:/root/.ollama
+    env_file:
+      - .env
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:latest
@@ -12,7 +15,10 @@ services:
     ports: ["3000:8080"]
     environment:
       - "OLLAMA_BASE_URL=http://ollama:11434"
-    volumes: [openwebui_data:/app/backend/data]
+    volumes:
+      - openwebui_data:/app/backend/data
+    env_file:
+      - .env
 
   financial_advisor:
     build:
@@ -20,7 +26,10 @@ services:
       dockerfile: ./financial_advisor/Dockerfile
     depends_on: [ollama]
     ports: ["8501:8501"]
-    volumes: [shared_models:/app/data]
+    volumes:
+      - shared_models:/app/data
+    env_file:
+      - .env
 
   market_researcher:
     build:
@@ -28,7 +37,10 @@ services:
       dockerfile: ./market_researcher/Dockerfile
     depends_on: [ollama]
     ports: ["8502:8501"]
-    volumes: [shared_models:/app/data]
+    volumes:
+      - shared_models:/app/data
+    env_file:
+      - .env
 
   turborag:
     build:
@@ -36,7 +48,10 @@ services:
       dockerfile: ./turborag/Dockerfile
     depends_on: [ollama]
     ports: ["8503:8501"]
-    volumes: [shared_models:/app/data]
+    volumes:
+      - shared_models:/app/data
+    env_file:
+      - .env
 
 volumes:
   shared_models:
