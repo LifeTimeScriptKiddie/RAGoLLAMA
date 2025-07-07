@@ -1,2 +1,0 @@
-# Run uploader.py at 2:00 AM EST daily
-0 2 * * * root python3 /app/uploader.py >> /app/docs/upload.log 2>&1

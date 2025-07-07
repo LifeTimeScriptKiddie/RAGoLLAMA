@@ -1,0 +1,6 @@
+docling
+faiss-cpu
+sentence-transformers
+pdfminer.six
+ofxparse
+pandas

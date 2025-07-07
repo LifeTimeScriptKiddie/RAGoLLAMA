@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports: ["11434:11434"]
+    volumes: [shared_models:/root/.ollama]
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:latest
+    depends_on: [ollama]
+    ports: ["3000:8080"]
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes: [openwebui_data:/app/backend/data]
+
+  financial_advisor:
+    build: ./financial_advisor
+    depends_on: [ollama]
+    ports: ["8501:8501"]
+    volumes: [shared_models:/app/data]
+
+  market_researcher:
+    build: ./market_researcher
+    depends_on: [ollama]
+    ports: ["8502:8501"]
+    volumes: [shared_models:/app/data]
+
+  turborag:
+    build: ./turborag
+    depends_on: [ollama]
+    ports: ["8503:8501"]
+    volumes: [shared_models:/app/data]
+
+volumes:
+  shared_models:
+  openwebui_data:
