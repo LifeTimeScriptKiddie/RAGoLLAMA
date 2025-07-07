@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   ollama:
     image: ollama/ollama:latest
@@ -15,18 +14,24 @@ services:
 
   financial_advisor:
     build: ./financial_advisor
+     context: .
+     dockerfile: ./financial_advisor/Dockerfile
     depends_on: [ollama]
     ports: ["8501:8501"]
     volumes: [shared_models:/app/data]
 
   market_researcher:
     build: ./market_researcher
+     context: .
+     dockerfile: ./market_researcher/Dockerfile
     depends_on: [ollama]
     ports: ["8502:8501"]
     volumes: [shared_models:/app/data]
 
   turborag:
     build: ./turborag
+      context: .
+      dockerfile: ./turborag/Dockerfile
     depends_on: [ollama]
     ports: ["8503:8501"]
     volumes: [shared_models:/app/data]
