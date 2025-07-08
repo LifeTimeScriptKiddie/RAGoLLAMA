@@ -9,7 +9,9 @@ COPY core /app/core
 COPY financial_advisor /app/financial_advisor
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r /app/core/requirements.txt -r /app/financial_advisor/requirements.txt
+RUN pip install --no-cache-dir -r /app/core/requirements.txt
+
+ENV PYTHONPATH /app
 
 EXPOSE 8501
 

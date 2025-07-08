@@ -31,28 +31,6 @@ services:
     env_file:
       - .env
 
-  market_researcher:
-    build:
-      context: .
-      dockerfile: ./market_researcher/Dockerfile
-    depends_on: [ollama]
-    ports: ["8502:8501"]
-    volumes:
-      - shared_models:/app/data
-    env_file:
-      - .env
-
-  turborag:
-    build:
-      context: .
-      dockerfile: ./turborag/Dockerfile
-    depends_on: [ollama]
-    ports: ["8503:8501"]
-    volumes:
-      - shared_models:/app/data
-    env_file:
-      - .env
-
 volumes:
   shared_models:
   openwebui_data:

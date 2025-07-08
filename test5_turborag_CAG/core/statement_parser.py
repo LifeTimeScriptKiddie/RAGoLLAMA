@@ -10,6 +10,12 @@ def _parse_csv(path: Path) -> pd.DataFrame:
     return pd.read_csv(path)
 
 def _parse_pdf(path: Path) -> pd.DataFrame:
+    """
+    Warning: This PDF parser is extremely fragile. It relies on a specific
+    regular expression that is tailored to a single, fixed PDF layout.
+    It will fail on any other format. For robust parsing, a more advanced
+    table extraction library or service is recommended.
+    """
     text = extract_text(path)
     rows = []
     for line in text.splitlines():
