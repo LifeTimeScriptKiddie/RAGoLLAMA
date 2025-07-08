@@ -62,9 +62,9 @@ A comprehensive AI-powered financial advisor built with Docker, Docling, Ollama,
 │  ┌─────────────────┐  ┌─────────┴───────┐  ┌─────────────────┐ │
 │  │   ./docs/       │  │ shared_models   │  │   ./data/       │ │
 │  │                 │  │                 │  │                 │ │
-│  │ • PDF Documents │  │ • Vector Store  │  │ • SQLite DB     │ │
-│  │ • Auto-scanned  │  │ • Embeddings    │  │ • Logs          │ │
-│  │ • 54 Tech Books │  │ • FAISS Index   │  │ • Cache         │ │
+│  │ • Cyber Docs    │  │ • Vector Store  │  │ • SQLite DB     │ │
+│  │ • Financial     │  │ • Embeddings    │  │ • Logs          │ │
+│  │ • General Docs  │  │ • FAISS Index   │  │ • Cache         │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -100,10 +100,15 @@ bash pull_models.sh
 - **Ollama API**: http://localhost:11434
 
 ### Adding Documents
-Place PDF files in the `./docs/` folder. They will be automatically processed:
-- **At startup**: All existing documents
-- **Daily at 2AM**: New documents added to the folder
+Place documents in organized folders within `./docs/`. They will be automatically processed:
+- **At startup**: All existing documents from all folders
+- **Daily at 2AM**: New documents added to any folder
 - **Manual scan**: Use the "Document Manager" tab
+
+**Organized Document Structure:**
+- `./docs/cyber/` - Cybersecurity, malware analysis, penetration testing materials
+- `./docs/financial/` - Financial statements, tax documents, investment guides  
+- `./docs/` (root) - General purpose documents and reference materials
 
 ## 🧠 Core Intelligence Components
 
@@ -267,6 +272,9 @@ test5_turborag_CAG/
 │   ├── app.py                     # Main 5-tab interface
 │   └── analytics.py               # Financial analytics engine
 ├── docs/                          # Document storage (auto-processed)
+│   ├── cyber/                     # Cybersecurity & malware analysis docs
+│   ├── financial/                 # Financial statements & tax documents
+│   └── [general files]            # Other reference materials
 ├── data/                          # SQLite database and logs
 ├── docker-compose.yml             # Container orchestration
 ├── pull_models.sh                 # Optimized model installer

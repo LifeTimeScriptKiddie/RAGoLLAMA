@@ -89,6 +89,8 @@ downloads/
 
 # Large document files (too big for GitHub)
 docs/*.pdf
+docs/cyber/
+docs/financial/
 docs/
 
 # Documentation build

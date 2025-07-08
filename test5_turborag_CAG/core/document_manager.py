@@ -227,17 +227,40 @@ class DocumentManager:
             "errors": 0,
             "files_processed": [],
             "files_skipped": [],
-            "files_errors": []
+            "files_errors": [],
+            "cyber_docs": 0,
+            "financial_docs": 0,
+            "general_docs": 0
         }
         
         # Supported file extensions
         supported_extensions = {'.pdf', '.txt', '.md', '.docx', '.doc'}
         
         try:
-            # Find all supported files
+            # Find all supported files in main docs, cyber, and financial directories
             all_files = []
+            
+            # Scan main docs directory (excluding subdirectories for now)
             for ext in supported_extensions:
-                all_files.extend(self.docs_path.glob(f'**/*{ext}'))
+                main_files = list(self.docs_path.glob(f'*{ext}'))  # Only direct files, not recursive
+                all_files.extend(main_files)
+                results["general_docs"] += len(main_files)
+            
+            # Scan cyber subdirectory
+            cyber_path = self.docs_path / "cyber"
+            if cyber_path.exists():
+                for ext in supported_extensions:
+                    cyber_files = list(cyber_path.glob(f'**/*{ext}'))
+                    all_files.extend(cyber_files)
+                    results["cyber_docs"] += len(cyber_files)
+            
+            # Scan financial subdirectory
+            financial_path = self.docs_path / "financial"
+            if financial_path.exists():
+                for ext in supported_extensions:
+                    financial_files = list(financial_path.glob(f'**/*{ext}'))
+                    all_files.extend(financial_files)
+                    results["financial_docs"] += len(financial_files)
             
             results["total_found"] = len(all_files)
             

@@ -81,6 +81,8 @@ if st.session_state.startup_complete:
             with st.spinner('Scanning for new documents...'):
                 results = document_manager.scan_and_process_documents()
                 st.success(f"Scan complete: {results['processed']} processed, {results['skipped']} skipped")
+                if results.get('cyber_docs', 0) > 0 or results.get('financial_docs', 0) > 0 or results.get('general_docs', 0) > 0:
+                    st.info(f"📁 Found: {results.get('cyber_docs', 0)} cyber, {results.get('financial_docs', 0)} financial, {results.get('general_docs', 0)} general docs")
 
 tabs = st.tabs(["🤖 Smart Assistant", "📊 Tax Dashboard", "📈 Investments", "📊 Analytics", "📚 Document Manager"])
 
@@ -596,6 +598,12 @@ with tabs[4]:
                 st.write(f"- **Skipped:** {results['skipped']} documents")
                 st.write(f"- **Errors:** {results['errors']} documents")
                 
+                # Show document type breakdown
+                if results.get('cyber_docs', 0) > 0 or results.get('financial_docs', 0) > 0 or results.get('general_docs', 0) > 0:
+                    st.write(f"- **Cyber docs:** {results.get('cyber_docs', 0)}")
+                    st.write(f"- **Financial docs:** {results.get('financial_docs', 0)}")
+                    st.write(f"- **General docs:** {results.get('general_docs', 0)}")
+                
                 if results['files_processed']:
                     st.write("**Processed files:**")
                     for file in results['files_processed']:
@@ -643,16 +651,23 @@ with tabs[4]:
     st.markdown("""
     **How to use the Document Manager:**
     
-    1. **Automatic Loading**: Place PDF files in the `/docs` folder (mapped to your host system)
+    1. **Automatic Loading**: Place files in organized folders within `/docs` (mapped to your host system)
     2. **Startup Processing**: Documents are automatically processed when the system starts
     3. **Daily Scanning**: The system automatically scans for new documents at 2:00 AM daily
     4. **Manual Refresh**: Use the "Refresh Documents" button to scan immediately
     5. **File Types**: Supports PDF, TXT, MD, DOCX, and DOC files
     6. **Duplicate Detection**: Files are only processed if they're new or have been modified
     
-    **Supported file locations:**
-    - `/docs` folder (automatically monitored)
-    - Manual uploads via the Smart Assistant tab
+    **Organized Document Folders:**
+    - `/docs/cyber/` - Cybersecurity, malware analysis, penetration testing documents
+    - `/docs/financial/` - Financial statements, tax documents, investment materials
+    - `/docs/` (root) - General purpose documents and other materials
+    - Manual uploads via the Smart Assistant tab (processed immediately)
+    
+    **Document Organization Tips:**
+    - Place cybersecurity books, threat reports, and security tools in `/docs/cyber/`
+    - Place financial statements, tax forms, and investment guides in `/docs/financial/`
+    - Use the root `/docs/` folder for general reference materials
     """)
 
 # Footer
