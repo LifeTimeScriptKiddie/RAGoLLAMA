@@ -13,7 +13,11 @@ RUN pip install --no-cache-dir -r /app/core/requirements.txt
 
 ENV PYTHONPATH /app
 
-EXPOSE 8501
+EXPOSE 8501 8502
 
-# Start Streamlit
-CMD ["streamlit", "run", "/app/financial_advisor/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+# Copy startup script
+COPY financial_advisor/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Start both Streamlit and Knowledge Base API
+CMD ["/app/start.sh"]

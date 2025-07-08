@@ -25,7 +25,9 @@ services:
       context: .
       dockerfile: ./financial_advisor/Dockerfile
     depends_on: [ollama]
-    ports: ["8501:8501"]
+    ports: 
+      - "8501:8501"  # Streamlit
+      - "8502:8502"  # Knowledge Base API
     volumes:
       - shared_models:/app/data
       - ./docs:/app/docs

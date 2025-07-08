@@ -76,28 +76,56 @@ A comprehensive AI-powered financial advisor built with Docker, Docling, Ollama,
 - 8GB+ RAM (5.5GB+ available for containers)
 - 10GB+ disk space
 
-### Installation
+### 🐳 Docker Deployment Options
 
-1. **Clone and setup**:
+#### **Option 1: Development (Quick Start)**
 ```bash
+# Clone and start immediately
 git clone https://github.com/LifeTimeScriptKiddie/RAGoLLAMA.git
 cd RAGoLLAMA/test5_turborag_CAG
+
+# One-line deployment
+docker compose up -d && bash pull_models.sh
 ```
 
-2. **Start the system**:
+#### **Option 2: Production Ready**
 ```bash
-docker compose up -d
-```
+# Automated production deployment
+./deploy.sh -e production
 
-3. **Install optimized LLM models**:
-```bash
+# Manual production deployment
+docker compose -f docker-compose.prod.yml up -d
 bash pull_models.sh
 ```
 
-4. **Access the application**:
-- **Streamlit App**: http://localhost:8501
-- **Ollama WebUI**: http://localhost:3000
+#### **Option 3: Production with Nginx Proxy**
+```bash
+# Single entry point with reverse proxy
+./deploy.sh -e production -p production -n
+
+# Access all services through http://localhost
+```
+
+#### **Option 4: Cloud Deployment**
+```bash
+# For AWS, GCP, Azure with monitoring
+docker compose -f docker-compose.cloud.yml --profile monitoring up -d
+```
+
+### 🌐 Service Access Points
+- **Open WebUI (Chat)**: http://localhost:3000
+- **Streamlit (Dashboard)**: http://localhost:8501
+- **Knowledge Base API**: http://localhost:8502
 - **Ollama API**: http://localhost:11434
+
+### 📋 Deployment Script Options
+```bash
+./deploy.sh --help                    # Show all options
+./deploy.sh                          # Development deployment
+./deploy.sh -e production             # Production deployment  
+./deploy.sh -e production -n          # Production + Nginx proxy
+./deploy.sh --no-models               # Skip model installation
+```
 
 ### Adding Documents
 Place documents in organized folders within `./docs/`. They will be automatically processed:
@@ -330,6 +358,135 @@ Upload bank statement → Automatic categorization → Tax insights
 "You could save $1,200 in taxes by optimizing business meal deductions"
 ```
 
+## 🐳 Docker Deployment Configurations
+
+### 📋 Available Configurations
+
+| Configuration | Purpose | Features | Use Case |
+|---------------|---------|----------|----------|
+| `docker-compose.yml` | Development | Hot reload, easy debugging | Local development |
+| `docker-compose.prod.yml` | Production | Health checks, resource limits, security | Production deployment |
+| `docker-compose.cloud.yml` | Cloud | Auto-scaling, monitoring, SSL | AWS/GCP/Azure |
+| `nginx.conf` | Reverse Proxy | Single entry point, SSL termination | Production with proxy |
+
+### 🚀 Deployment Environments
+
+#### **Development Environment**
+- **Purpose**: Local development and testing
+- **Features**: Direct port access, easy debugging
+- **Command**: `docker compose up -d`
+- **Ports**: 3000 (WebUI), 8501 (Streamlit), 8502 (API), 11434 (Ollama)
+
+#### **Production Environment**
+- **Purpose**: Production deployment with enhanced security
+- **Features**: Authentication enabled, health checks, resource limits
+- **Command**: `./deploy.sh -e production`
+- **Security**: Read-only mounts, restart policies, authentication required
+
+#### **Cloud Environment**
+- **Purpose**: Cloud platform deployment (AWS, GCP, Azure)
+- **Features**: Auto-scaling, monitoring, external load balancer support
+- **Command**: `docker compose -f docker-compose.cloud.yml up -d`
+- **Optional**: Redis caching, PostgreSQL, Prometheus monitoring
+
+### 🔧 Resource Requirements
+
+| Environment | CPU | RAM | Disk | Network |
+|-------------|-----|-----|------|---------|
+| **Development** | 4 cores | 8GB | 20GB | Local |
+| **Production** | 8 cores | 16GB | 50GB SSD | 1Gbps |
+| **Cloud** | 4-16 cores | 16-32GB | 100GB+ | Load balanced |
+
+### 📊 Recommended Cloud Instances
+
+| Provider | Instance Type | vCPUs | RAM | Use Case |
+|----------|---------------|-------|-----|----------|
+| **AWS** | t3.xlarge | 4 | 16GB | Small production |
+| **AWS** | m5.xlarge | 4 | 16GB | Balanced workload |
+| **AWS** | m5.2xlarge | 8 | 32GB | High performance |
+| **GCP** | n2-standard-4 | 4 | 16GB | Small production |
+| **GCP** | e2-standard-4 | 4 | 16GB | Cost-optimized |
+| **Azure** | Standard_D4s_v3 | 4 | 16GB | General purpose |
+
+### 🌐 Open WebUI Integration
+
+#### **Method 1: Upload Functions (Recommended)**
+1. Access Open WebUI at http://localhost:3000
+2. Go to **Settings** → **Functions**
+3. Upload functions from `openwebui_functions/`:
+   - `simple_financial_search.py` - Basic document search
+   - `kb_status_checker.py` - Knowledge base status
+   - `financial_advisor_kb.py` - Advanced features
+
+#### **Method 2: Knowledge Base API Integration**
+- **API Endpoint**: http://localhost:8502
+- **Search**: `/search?query=malware&limit=3`
+- **Status**: `/knowledge`
+- **Documents**: `/documents`
+
+#### **Method 3: Native Open WebUI Knowledge Base**
+1. In Open WebUI, go to **Knowledge** section
+2. Create knowledge base: "Financial Advisor Documents"
+3. Upload documents from `docs/cyber/` and `docs/financial/`
+
+### 🔐 Production Security Checklist
+
+- ✅ **Authentication**: Enable WebUI authentication (`WEBUI_AUTH=True`)
+- ✅ **Secret Keys**: Set strong `WEBUI_SECRET_KEY`
+- ✅ **Network**: Configure firewall rules
+- ✅ **SSL/TLS**: Set up HTTPS with certificates
+- ✅ **Updates**: Regular security updates
+- ✅ **Backups**: Automated data backups
+- ✅ **Monitoring**: Health checks and alerting
+
+### 📈 Scaling and Monitoring
+
+#### **Horizontal Scaling**
+```bash
+# Scale Financial Advisor service
+docker compose up -d --scale financial_advisor=3
+```
+
+#### **Monitoring Stack**
+```bash
+# Deploy with Prometheus and Grafana
+docker compose -f docker-compose.cloud.yml --profile monitoring up -d
+
+# Access monitoring
+# Grafana: http://localhost:3000
+# Prometheus: http://localhost:9090
+```
+
+#### **Health Monitoring**
+```bash
+# Check all service health
+curl http://localhost/health
+
+# Individual health checks
+curl http://localhost:8501/_stcore/health  # Streamlit
+curl http://localhost:8502/               # Knowledge Base API
+curl http://localhost:11434/api/version   # Ollama
+```
+
+### 🔄 Backup and Recovery
+
+#### **Data Volumes**
+```bash
+# List volumes to backup
+docker volume ls | grep financial
+
+# Backup critical data
+docker run --rm -v shared_models:/data -v $(pwd):/backup alpine tar czf /backup/models.tar.gz -C /data .
+docker run --rm -v openwebui_data:/data -v $(pwd):/backup alpine tar czf /backup/webui.tar.gz -C /data .
+```
+
+#### **Recovery Process**
+```bash
+# Restore from backup
+docker volume create shared_models
+docker run --rm -v shared_models:/data -v $(pwd):/backup alpine tar xzf /backup/models.tar.gz -C /data
+```
+
 ## 🔍 Troubleshooting
 
 ### Model Issues
@@ -360,6 +517,129 @@ docker compose restart financial_advisor
 # View logs
 docker compose logs -f
 ```
+
+### Deployment Issues
+
+#### **Out of Memory Errors**
+```bash
+# Check memory usage
+docker stats
+
+# Free up memory
+docker system prune -a
+
+# Use smaller models
+# Edit pull_models.sh to remove large models
+```
+
+#### **Port Conflicts**
+```bash
+# Check port usage
+netstat -tlnp | grep :3000
+
+# Change ports in docker-compose.yml
+ports:
+  - "3001:8080"  # Changed from 3000:8080
+```
+
+#### **SSL Certificate Issues**
+```bash
+# Generate self-signed certificate for testing
+mkdir -p ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout ssl/key.pem -out ssl/cert.pem \
+  -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
+```
+
+#### **Cloud Deployment Issues**
+```bash
+# Check cloud instance resources
+top
+df -h
+free -h
+
+# Verify network connectivity
+curl -I http://localhost:3000
+curl -I http://localhost:8501
+
+# Check cloud provider firewall/security groups
+# Ensure ports 80, 443, 3000, 8501 are open
+```
+
+#### **Performance Issues**
+```bash
+# Monitor resource usage
+docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+
+# Optimize model selection
+docker exec test5_turborag_cag-ollama-1 ollama list
+
+# Scale services if needed
+docker compose up -d --scale financial_advisor=2
+```
+
+## 🐳 Complete Deployment Summary
+
+### 🎯 **Deployment Options Comparison**
+
+| Feature | Development | Production | Cloud | 
+|---------|-------------|------------|--------|
+| **Setup Complexity** | ⭐ Simple | ⭐⭐ Medium | ⭐⭐⭐ Advanced |
+| **Security** | Basic | Enhanced | Enterprise |
+| **Monitoring** | Logs only | Health checks | Full stack |
+| **Scalability** | Single instance | Multi-instance | Auto-scaling |
+| **SSL/HTTPS** | No | Optional | Required |
+| **Backup** | Manual | Automated | Cloud backup |
+| **Cost** | Free | Low | Variable |
+
+### 🚀 **Quick Deploy Commands**
+
+```bash
+# 🔧 Development (Current setup)
+docker compose up -d && bash pull_models.sh
+
+# 🏭 Production
+./deploy.sh -e production
+
+# 🌐 Production with Proxy
+./deploy.sh -e production -p production -n
+
+# ☁️ Cloud with Monitoring  
+docker compose -f docker-compose.cloud.yml --profile monitoring up -d
+
+# 🔄 Update deployment
+docker compose pull && docker compose up -d --force-recreate
+```
+
+### 📊 **Post-Deployment Verification**
+
+```bash
+# ✅ Check all services
+curl http://localhost:3000    # Open WebUI
+curl http://localhost:8501    # Streamlit  
+curl http://localhost:8502    # Knowledge Base API
+curl http://localhost:11434   # Ollama API
+
+# ✅ Verify models loaded
+docker exec test5_turborag_cag-ollama-1 ollama list
+
+# ✅ Check document processing
+curl http://localhost:8502/knowledge | jq '.total_documents'
+
+# ✅ Test knowledge base integration
+# Upload kb_status_checker.py to Open WebUI and ask "What's my knowledge base status?"
+```
+
+### 🎉 **Success Indicators**
+
+Your deployment is successful when:
+- ✅ All containers show "healthy" status
+- ✅ Open WebUI loads at http://localhost:3000  
+- ✅ Streamlit dashboard loads at http://localhost:8501
+- ✅ Knowledge Base API responds at http://localhost:8502
+- ✅ 56+ documents are processed and searchable
+- ✅ LLM models respond to queries
+- ✅ Open WebUI functions can access your document knowledge base
 
 ## 🏗️ Development
 

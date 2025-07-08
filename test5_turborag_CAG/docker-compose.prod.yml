@@ -1,0 +1,108 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: financial_advisor_ollama
+    restart: unless-stopped
+    ports: 
+      - "11434:11434"
+    volumes:
+      - shared_models:/root/.ollama
+    environment:
+      - OLLAMA_ORIGINS=*  # Allow external connections
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        reservations:
+          memory: 2G
+        limits:
+          memory: 6G
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: financial_advisor_webui
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    ports: 
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_AUTH=True  # Enable authentication
+      - WEBUI_NAME=Financial Advisor Suite
+      - WEBUI_URL=http://localhost:3000
+    volumes:
+      - openwebui_data:/app/backend/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  financial_advisor:
+    build:
+      context: .
+      dockerfile: ./financial_advisor/Dockerfile
+    container_name: financial_advisor_app
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    ports: 
+      - "8501:8501"  # Streamlit
+      - "8502:8502"  # Knowledge Base API
+    volumes:
+      - shared_models:/app/data
+      - ./docs:/app/docs:ro  # Read-only mount for security
+      - ./data:/app/data_local  # Local data persistence
+    environment:
+      - PYTHONPATH=/app
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        reservations:
+          memory: 1G
+        limits:
+          memory: 4G
+
+  # Optional: Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: financial_advisor_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # SSL certificates if needed
+    depends_on:
+      - open-webui
+      - financial_advisor
+    profiles:
+      - production  # Only start with --profile production
+
+volumes:
+  shared_models:
+    driver: local
+  openwebui_data:
+    driver: local
+
+networks:
+  default:
+    name: financial_advisor_network
+    driver: bridge
