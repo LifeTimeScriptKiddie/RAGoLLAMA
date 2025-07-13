@@ -1,0 +1,17 @@
+streamlit>=1.32.0
+PyPDF2>=3.0.1
+requests>=2.31.0
+numpy>=1.26.4
+sentence-transformers>=2.2.2
+langchain>=0.1.16
+langchain-docling>=0.1.3
+docling >=0.1.3
+faiss-cpu >=1.8.0
+pdfminer.six
+ofxparse
+pandas>=2.1.3
+plotly>=5.17.0
+schedule>=1.2.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0

@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama_test6
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "ollama list | grep llama3"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui_test6
+    ports:
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - openwebui_data:/app/backend/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    depends_on:
+      - ollama
+
+  financial_advisor:
+    build:
+      context: .
+      dockerfile: ./financial_advisor/Dockerfile
+    container_name: financial_advisor_test6
+    depends_on:
+      ollama:
+        condition: service_healthy
+      open-webui:
+        condition: service_healthy
+    ports:
+      - "8501:8501"  # Streamlit
+    volumes:
+      - ./docs:/app/docs
+      - ./data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: >
+      sh -c "cron -f & streamlit run /app/financial_advisor/app.py --server.port 8501 --server.address 0.0.0.0"
+
+volumes:
+  openwebui_data:
+  ollama_data:
