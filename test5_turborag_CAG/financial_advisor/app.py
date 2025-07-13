@@ -84,7 +84,7 @@ if st.session_state.startup_complete:
                 if results.get('cyber_docs', 0) > 0 or results.get('financial_docs', 0) > 0 or results.get('general_docs', 0) > 0:
                     st.info(f"📁 Found: {results.get('cyber_docs', 0)} cyber, {results.get('financial_docs', 0)} financial, {results.get('general_docs', 0)} general docs")
 
-tabs = st.tabs(["🤖 Smart Assistant", "📊 Tax Dashboard", "📈 Investments", "📊 Analytics", "📚 Document Manager"])
+tabs = st.tabs(["🤖 Smart Assistant", "💻 Cyber Code Helper", "📊 Tax Dashboard", "📈 Investments", "📊 Analytics", "📚 Document Manager"])
 
 conn = sqlite3.connect("/app/data/finance.db", check_same_thread=False)
 
@@ -220,6 +220,39 @@ ollama pull gemma:latest
 
 
 with tabs[1]:
+    st.subheader("💻 Cyber Code Helper")
+    
+    st.info("Got a question about cybersecurity, ethical hacking, or secure coding? Ask away!")
+    
+    # Chat interface for Cyber Code Helper
+    cyber_q = st.text_area("Ask a cyber-related question:", 
+                           placeholder="e.g., 'Write a Python script to check for open ports on a host' or 'Explain the MITRE ATT&CK framework.'")
+    
+    if st.button("Get Cyber Help"):
+        if cyber_q:
+            try:
+                with st.spinner("Consulting with cyber expert..."):
+                    # We can reuse the cag_engine, but specify the context
+                    response = cag_engine.generate_context_aware_response(cyber_q, context_type='cyber')
+                    
+                    st.markdown("### 🤖 Cyber Assistant Response")
+                    st.markdown(response["answer"])
+                    
+                    # Show sources if available
+                    if response.get("rag_sources"):
+                        with st.expander("📚 Sources"):
+                            for i, source in enumerate(response["rag_sources"], 1):
+                                st.markdown(f"**Source {i}** (Score: {source['score']:.3f})")
+                                st.text(source["text"])
+
+            except Exception as e:
+                st.error(f"❌ Error getting cyber help: {str(e)}")
+                logger.error(f"Cyber help error: {str(e)}")
+        else:
+            st.warning("Please enter a question.")
+
+
+with tabs[2]:
     st.subheader("📊 Tax Dashboard")
     
     # Statement upload section
@@ -309,7 +342,7 @@ with tabs[1]:
     else:
         st.info("No transaction data available. Upload a statement to get started.")
 
-with tabs[2]:
+with tabs[3]:
     st.subheader("📈 Investment Dashboard")
     
     # Portfolio management
@@ -400,7 +433,7 @@ with tabs[2]:
                 st.error(f"❌ Error analyzing portfolio: {str(e)}")
                 logger.error(f"Portfolio analysis error: {str(e)}")
 
-with tabs[3]:
+with tabs[4]:
     st.subheader("📊 Financial Analytics")
     
     # Analytics dashboard
@@ -507,7 +540,7 @@ with tabs[3]:
             st.error(f"❌ Error generating report: {str(e)}")
             logger.error(f"Financial summary error: {str(e)}")
 
-with tabs[4]:
+with tabs[5]:
     st.subheader("📚 Document Manager")
     
     # Document status overview

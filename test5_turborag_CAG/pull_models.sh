@@ -13,10 +13,27 @@ pull_model() {
     local model=$1
     echo "📦 Pulling $model..."
     
-    if docker exec test5_turborag_cag-ollama-1 ollama pull "$model"; then
-        echo "✅ Successfully pulled $model"
+    # Check if model is already pulled
+    if docker exec test5_turborag_cag-ollama-1 ollama list | grep -q "$model"; then
+        echo "✅ $model already exists, skipping"
+        return 0
+    fi
+    
+    # Use gtimeout if available (brew install coreutils), otherwise regular pull
+    if command -v gtimeout &> /dev/null; then
+        if gtimeout 900 docker exec test5_turborag_cag-ollama-1 ollama pull "$model"; then
+            echo "✅ Successfully pulled $model"
+        else
+            echo "❌ Failed to pull $model (timeout or error)"
+            echo "💡 You can continue manually with: docker exec test5_turborag_cag-ollama-1 ollama pull $model"
+        fi
     else
-        echo "❌ Failed to pull $model"
+        if docker exec test5_turborag_cag-ollama-1 ollama pull "$model"; then
+            echo "✅ Successfully pulled $model"
+        else
+            echo "❌ Failed to pull $model"
+            echo "💡 You can continue manually with: docker exec test5_turborag_cag-ollama-1 ollama pull $model"
+        fi
     fi
     echo ""
 }
