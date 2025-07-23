@@ -175,7 +175,7 @@ deploy_services() {
     
     # Stop existing services
     print_status "Stopping existing services..."
-    docker compose -f "$COMPOSE_FILE" down
+    docker compose -f "$COMPOSE_FILE" down --volumes --remove-orphans
     
     # Pull latest images
     print_status "Pulling latest images..."
