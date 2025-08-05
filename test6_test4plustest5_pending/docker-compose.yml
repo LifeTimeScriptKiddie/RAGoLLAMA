@@ -44,16 +44,18 @@ services:
         condition: service_healthy
       open-webui:
         condition: service_healthy
-    ports:
-      - "8501:8501"  # Streamlit
+    network_mode: host
     volumes:
       - ./docs:/app/docs
       - ./data:/app/data
+    environment:
+      - OLLAMA_BASE_URL=http://127.0.0.1:11434
+      - OLLAMA_URL=http://127.0.0.1:11434
     env_file:
       - .env
     restart: unless-stopped
     command: >
-      sh -c "cron -f & streamlit run /app/financial_advisor/app.py --server.port 8501 --server.address 0.0.0.0"
+      sh -c "streamlit run /app/financial_advisor/app.py --server.port 8501 --server.address 0.0.0.0"
 
 volumes:
   openwebui_data:

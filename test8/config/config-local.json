@@ -1,0 +1,57 @@
+{
+  "general": {
+    "log_level": "INFO",
+    "environment": "development"
+  },
+  "database": {
+    "db_path": "./cache/documents.db"
+  },
+  "document_processing": {
+    "max_chunk_size": 1000,
+    "chunk_overlap": 200,
+    "supported_formats": [".pdf", ".txt", ".docx", ".pptx", ".jpg", ".png"]
+  },
+  "embeddings": {
+    "dimension": 384,
+    "docling": {
+      "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+      "batch_size": 16,
+      "cache_embeddings": true
+    },
+    "microsoft": {
+      "use_mock": true,
+      "batch_size": 8
+    }
+  },
+  "vector_store": {
+    "faiss_index_path": "./cache/faiss",
+    "index_type": "HNSW",
+    "dimension": 384
+  },
+  "comparison": {
+    "similarity_threshold": 0.7,
+    "comparison_metrics": ["cosine"]
+  },
+  "ollama": {
+    "ollama_url": "http://localhost:11434",
+    "default_model": "llama2",
+    "timeout": 30,
+    "max_retries": 3
+  },
+  "api": {
+    "host": "127.0.0.1",
+    "port": 8000,
+    "cors_origins": ["http://localhost:8501"],
+    "max_file_size": "50MB"
+  },
+  "streamlit": {
+    "host": "127.0.0.1",
+    "port": 8501,
+    "api_base_url": "http://localhost:8000"
+  },
+  "cache": {
+    "faiss_index_path": "./cache/faiss",
+    "documents_cache_path": "./cache/documents",
+    "logs_path": "./logs"
+  }
+}

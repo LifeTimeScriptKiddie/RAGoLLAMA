@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 
 class OllamaClient:
     def __init__(self, base_url: str = None):
-        self.base_url = base_url or os.environ.get("OLLAMA_BASE_URL", "http://ollama:11434")
+        self.base_url = base_url or os.environ.get("OLLAMA_BASE_URL", os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434"))
         self.available_models = []
         self.default_model = None
         self._check_connection()

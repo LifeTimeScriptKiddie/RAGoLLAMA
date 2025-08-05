@@ -4,8 +4,8 @@ import os
 from typing import Union, Dict
 
 # Load configuration from environment variables with defaults
-OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://ollama:11434")
-OPEN_WEBUI_URL = os.environ.get("OPEN_WEBUI_URL", "http://open-webui:8080")
+OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434"))
+OPEN_WEBUI_URL = os.environ.get("OPEN_WEBUI_URL", "http://127.0.0.1:3000")
 OPEN_WEBUI_TOKEN = os.environ.get("OPEN_WEBUI_TOKEN", "") # Default to empty
 HEADERS = {
     "Authorization": f"Bearer {OPEN_WEBUI_TOKEN}",
