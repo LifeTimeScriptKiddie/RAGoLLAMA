@@ -1,100 +1,70 @@
-version: '3.8'
 
 services:
-  # Multi-RAG Pipeline Application
-  multi-rag-app:
-    build: .
-    container_name: multi-rag-pipeline
-    ports:
-      - "8000:8000"  # REST API
-      - "8501:8501"  # Streamlit Web Interface
-    volumes:
-      - ./documents:/app/documents:ro
-      - ./cache:/app/cache
-      - ./config:/app/config:ro
-      - ./logs:/app/logs
-    environment:
-      - PYTHONPATH=/app
-      - PYTHONUNBUFFERED=1
-      - LOG_LEVEL=INFO
-      - DB_PATH=/app/cache/documents.db
-      - FAISS_INDEX_PATH=/app/cache/faiss
-      - OLLAMA_URL=http://ollama:11434
-    depends_on:
-      - ollama
-    networks:
-      - rag-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # Ollama LLM Service
   ollama:
-    image: ollama/ollama:latest
-    container_name: ollama-service
+    image: ollama/ollama
+    container_name: ollama
     ports:
       - "11434:11434"
     volumes:
-      - ollama-data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0
-    networks:
-      - rag-network
+      - ollama_data:/root/.ollama
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # Override the entrypoint to run a shell, so we can execute a script.
+    entrypoint: sh
+    # This command starts the server in the background, waits 5 seconds for it to initialize,
+    # pulls the required models, and then uses 'wait' to keep the container running.
+    command: >
+      -c "
+        ollama serve &
+        sleep 5 &&
+        ollama pull llama3 &&
+        ollama pull mistral &&
+        ollama pull codellama &&
+        ollama pull gemma &&
+        ollama pull orca-mini &&
+        wait"
 
-  # Streamlit Web Interface (separate container for scaling)
-  streamlit-ui:
-    build: .
-    container_name: streamlit-interface
-    ports:
-      - "8502:8501"
-    volumes:
-      - ./documents:/app/documents:ro
-      - ./cache:/app/cache:ro
-      - ./config:/app/config:ro
-    environment:
-      - PYTHONPATH=/app
-      - STREAMLIT_SERVER_PORT=8501
-      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
-      - API_BASE_URL=http://multi-rag-app:8000
-    command: ["streamlit", "run", "interfaces/streamlit/app.py"]
-    depends_on:
-      - multi-rag-app
-    networks:
-      - rag-network
-    restart: unless-stopped
-
-  # OpenWebUI Interface (optional)
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     ports:
       - "3000:8080"
-    volumes:
-      - open-webui-data:/app/backend/data
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
-      - WEBUI_SECRET_KEY=your-secret-key-here
-    depends_on:
-      - ollama
-    networks:
-      - rag-network
+    volumes:
+      - openwebui_data:/app/backend/data
     restart: unless-stopped
 
-networks:
-  rag-network:
-    driver: bridge
+  rag-backend:
+    build: ./rag_backend
+    container_name: rag_backend
+    depends_on:
+      - ollama
+      - open-webui
+    volumes:
+      - ./rag_backend:/app
+      - ./rag_backend/docs:/app/docs  # Mounts host's docs into container
+    env_file:
+      - ./rag_backend/.env
+    restart: unless-stopped
+    command: cron -f  # runs cron in foreground (uploads run at 2 AM)
+
+  streamlit-ui:
+    build: ./rag_backend
+    container_name: streamlit_ui
+    ports:
+      - "8501:8501"
+    depends_on:
+      - ollama
+      - rag-backend
+    volumes:
+      - ./rag_backend:/app
+      - ./rag_backend/docs:/app/docs
+    env_file:
+      - ./rag_backend/.env
+    restart: unless-stopped
+    command: streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 8501
 
 volumes:
-  ollama-data:
-    driver: local
-  open-webui-data:
-    driver: local
+  openwebui_data:
+  ollama_data:
