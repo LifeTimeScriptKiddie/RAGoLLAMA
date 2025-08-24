@@ -1,0 +1,10 @@
+requests>=2.32.3
+qdrant-client==1.7.0
+psycopg2-binary==2.9.9
+boto3==1.34.10
+sentence-transformers==2.2.2
+ollama==0.1.7
+docling==1.8.0
+PyPDF2==3.0.1
+python-docx==1.1.0
+openpyxl==3.1.2

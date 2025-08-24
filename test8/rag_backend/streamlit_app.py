@@ -1,11 +1,6 @@
 import streamlit as st
-import numpy as np
-from pathlib import Path
-import tempfile
 import os
-from api import query_ollama
-from doc_processor import build_vectordb_from_pdf
-from vectorizer import search_similar_chunks
+from backend_client import BackendClient
 
 st.set_page_config(
     page_title="RAG Document Chat",
@@ -13,15 +8,22 @@ st.set_page_config(
     layout="wide"
 )
 
+# Initialize backend client
+@st.cache_resource
+def get_backend_client():
+    return BackendClient()
+
+backend_client = get_backend_client()
+
 # Initialize session state
-if 'chunks' not in st.session_state:
-    st.session_state.chunks = []
-if 'embeddings' not in st.session_state:
-    st.session_state.embeddings = np.array([])
+if 'current_document' not in st.session_state:
+    st.session_state.current_document = None
 if 'doc_chat_history' not in st.session_state:
     st.session_state.doc_chat_history = []
 if 'general_chat_history' not in st.session_state:
     st.session_state.general_chat_history = []
+if 'documents' not in st.session_state:
+    st.session_state.documents = []
 
 st.title("📚 RAG Document Chat")
 st.markdown("Upload a PDF document and chat with it using AI, or ask general questions")
@@ -29,10 +31,16 @@ st.markdown("Upload a PDF document and chat with it using AI, or ask general que
 # Create tabs for different functionalities
 tab1, tab2 = st.tabs(["📄 Document Chat", "💬 General Chat"])
 
-# Sidebar for document upload and settings
+# Check backend health
+if not backend_client.health_check():
+    st.error("❌ Backend server is not available. Please check your backend service.")
+    st.stop()
+
+# Sidebar for document management and settings
 with st.sidebar:
-    st.header("Document Upload")
+    st.header("Document Management")
     
+    # Document upload
     uploaded_file = st.file_uploader(
         "Choose a PDF file",
         type="pdf",
@@ -40,27 +48,63 @@ with st.sidebar:
     )
     
     if uploaded_file is not None:
-        with st.spinner("Processing document..."):
-            # Save uploaded file temporarily
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                tmp_file.write(uploaded_file.read())
-                tmp_path = Path(tmp_file.name)
-            
+        with st.spinner("Uploading and processing document..."):
             try:
-                # Process the document
-                chunks, embeddings = build_vectordb_from_pdf(tmp_path)
-                st.session_state.chunks = chunks
-                st.session_state.embeddings = embeddings
-                st.success("✅ Document processed successfully!")
+                # Upload to backend
+                file_content = uploaded_file.read()
+                result = backend_client.upload_document(file_content, uploaded_file.name)
                 
-                # Store document name
-                st.session_state.doc_name = uploaded_file.name
+                st.success(f"✅ Document uploaded: {uploaded_file.name}")
+                st.session_state.current_document = result
+                
+                # Refresh document list
+                st.session_state.documents = backend_client.list_documents()
                 
             except Exception as e:
-                st.error(f"Error processing document: {e}")
-            finally:
-                # Clean up temp file
-                os.unlink(tmp_path)
+                st.error(f"Error uploading document: {e}")
+    
+    # Document selection
+    st.header("Select Document")
+    
+    # Refresh documents list
+    if st.button("🔄 Refresh Documents"):
+        st.session_state.documents = backend_client.list_documents()
+    
+    # Show available documents
+    if st.session_state.documents:
+        doc_options = {doc["filename"]: doc for doc in st.session_state.documents}
+        selected_doc_name = st.selectbox(
+            "Available Documents",
+            options=list(doc_options.keys()),
+            index=0 if st.session_state.current_document is None else 
+                  list(doc_options.keys()).index(st.session_state.current_document["filename"]) 
+                  if st.session_state.current_document and st.session_state.current_document["filename"] in doc_options 
+                  else 0
+        )
+        
+        if selected_doc_name:
+            st.session_state.current_document = doc_options[selected_doc_name]
+            
+            # Show document info
+            doc = st.session_state.current_document
+            st.info(f"""
+            **Document:** {doc['filename']}
+            **Status:** {doc['status']}
+            **Chunks:** {doc['chunk_count']}
+            **Uploaded:** {doc['created_at'][:19]}
+            """)
+            
+            # Delete document button
+            if st.button("🗑️ Delete Document", type="secondary"):
+                if backend_client.delete_document(doc['id']):
+                    st.success("Document deleted!")
+                    st.session_state.current_document = None
+                    st.session_state.documents = backend_client.list_documents()
+                    st.rerun()
+                else:
+                    st.error("Failed to delete document")
+    else:
+        st.info("No documents uploaded yet")
     
     # Model selection
     st.header("Model Settings")
@@ -78,10 +122,10 @@ with st.sidebar:
 
 # Document Chat Tab
 with tab1:
-    if len(st.session_state.chunks) > 0:
-        st.success(f"📄 Document loaded: {st.session_state.get('doc_name', 'Unknown')}")
+    if st.session_state.current_document and st.session_state.current_document['status'] == 'completed':
+        st.success(f"📄 Document loaded: {st.session_state.current_document['filename']}")
     else:
-        st.info("👆 Please upload a PDF document in the sidebar to get started")
+        st.info("👆 Please upload and select a PDF document in the sidebar to get started")
         
         # Show example questions
         st.markdown("### Example Questions You Can Ask About Documents:")
@@ -105,40 +149,26 @@ with tab1:
         # Add user message to doc chat history
         st.session_state.doc_chat_history.append({"role": "user", "content": user_question})
         
-        if len(st.session_state.chunks) > 0:
-            # Document-based RAG response
+        if st.session_state.current_document and st.session_state.current_document['status'] == 'completed':
+            # Document-based RAG response using backend
             with st.spinner("Searching document and generating response..."):
                 try:
-                    # Retrieve relevant chunks using vectorizer
-                    relevant_chunks = search_similar_chunks(
-                        user_question,
-                        st.session_state.embeddings,
-                        st.session_state.chunks,
+                    response = backend_client.chat_with_document(
+                        message=user_question,
+                        document_id=st.session_state.current_document['id'],
+                        model=selected_model,
                         top_k=top_k
                     )
-                    context = "\n\n".join(relevant_chunks)
-                    
-                    # Create RAG prompt
-                    rag_prompt = f"""Based on the following context from the document, please answer the question.
-
-Context:
-{context}
-
-Question: {user_question}
-
-Answer:"""
-                    
-                    # Query the LLM
-                    response = query_ollama(rag_prompt, selected_model)
                     
                     # Add AI response to doc chat history
                     st.session_state.doc_chat_history.append({"role": "assistant", "content": response})
                     
                 except Exception as e:
-                    st.error(f"Error generating response: {e}")
+                    error_msg = f"Error generating response: {e}"
+                    st.session_state.doc_chat_history.append({"role": "assistant", "content": error_msg})
         else:
-            # No document uploaded - inform user
-            response = "Please upload a PDF document first to ask questions about it. You can use the 'General Chat' tab for general questions."
+            # No document selected - inform user
+            response = "Please upload and select a PDF document first to ask questions about it. You can use the 'General Chat' tab for general questions."
             st.session_state.doc_chat_history.append({"role": "assistant", "content": response})
         
         st.rerun()
@@ -147,6 +177,11 @@ Answer:"""
 with tab2:
     st.markdown("### Ask Any Question")
     st.markdown("Chat with the AI without needing a document")
+    
+    # Display general chat history
+    for message in st.session_state.general_chat_history:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
     
     # Chat input for general questions
     general_question = st.chat_input("Ask me anything...", key="general_chat")
@@ -157,19 +192,17 @@ with tab2:
         
         with st.spinner("Generating response..."):
             try:
-                # Query the LLM directly without RAG
-                response = query_ollama(general_question, selected_model)
+                # Use backend for general chat
+                response = backend_client.general_chat(general_question, selected_model)
                 
                 # Add AI response to general chat history
                 st.session_state.general_chat_history.append({"role": "assistant", "content": response})
                 
             except Exception as e:
-                st.error(f"Error generating response: {e}")
-    
-    # Display general chat history
-    for message in st.session_state.general_chat_history:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
+                error_msg = f"Error generating response: {e}"
+                st.session_state.general_chat_history.append({"role": "assistant", "content": error_msg})
+        
+        st.rerun()
     
     if len(st.session_state.general_chat_history) == 0:
         st.markdown("### Example Questions:")

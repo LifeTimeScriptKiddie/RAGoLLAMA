@@ -1,0 +1,134 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "RAG-Ollama System Dashboard",
+    "tags": ["rag", "ollama"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Query Rate (req/min)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(rag_requests_total{endpoint=\"query\"}[5m]) * 60",
+            "legendFormat": "Queries/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqpm"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Average Query Latency",
+        "type": "stat", 
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(query_latency_ms_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Index Size",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "index_size_chunks",
+            "legendFormat": "Chunks"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Document Upload Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(documents_uploaded_total[5m]) * 60",
+            "legendFormat": "Uploads/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqpm"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Query Latency Over Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(query_latency_ms_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(query_latency_ms_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(query_latency_ms_bucket[5m]))",
+            "legendFormat": "99th percentile"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Component Latency Breakdown",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(retriever_latency_ms_bucket[5m]))",
+            "legendFormat": "Retriever"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(ollama_latency_ms_bucket[5m]))",
+            "legendFormat": "Ollama"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(embedding_latency_ms_bucket[5m]))",
+            "legendFormat": "Embedding"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ]
+  }
+}

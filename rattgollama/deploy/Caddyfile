@@ -1,0 +1,26 @@
+:80 {
+    # Streamlit UI (main interface)
+    reverse_proxy streamlit:8501
+    
+    # API endpoints
+    handle /api/* {
+        reverse_proxy ingestion-api:8000
+    }
+    
+    # Open WebUI
+    handle /openwebui/* {
+        uri strip_prefix /openwebui
+        reverse_proxy openwebui:8080
+    }
+    
+    # Enable gzip compression
+    encode gzip
+    
+    # Add security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}

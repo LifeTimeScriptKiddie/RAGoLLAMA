@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - ingress.yaml
+
+namespace: rag-dev
+
+commonLabels:
+  environment: dev
+
+# Patches for development environment
+patchesStrategicMerge:
+  - backend-dev-patch.yaml
+  - ollama-dev-patch.yaml
+
+# ConfigMap patches for dev
+configMapGenerator:
+  - name: rag-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+
+# Resource scaling for dev (smaller footprint)
+replicas:
+  - name: rag-backend
+    count: 1

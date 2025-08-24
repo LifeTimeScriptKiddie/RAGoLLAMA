@@ -1,6 +1,19 @@
 
 services:
 
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres_rag
+    environment:
+      POSTGRES_DB: rag_db
+      POSTGRES_USER: rag_user
+      POSTGRES_PASSWORD: rag_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   ollama:
     image: ollama/ollama
     container_name: ollama
@@ -49,22 +62,41 @@ services:
     restart: unless-stopped
     command: cron -f  # runs cron in foreground (uploads run at 2 AM)
 
+  backend:
+    build: ./backend
+    container_name: rag_backend_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - ollama
+    environment:
+      DATABASE_URL: postgresql://rag_user:rag_password@postgres:5432/rag_db
+      OLLAMA_URL: http://ollama:11434
+      EMBED_MODEL: all-MiniLM-L6-v2
+    restart: unless-stopped
+
   streamlit-ui:
     build: ./rag_backend
     container_name: streamlit_ui
     ports:
       - "8501:8501"
     depends_on:
+      - backend
       - ollama
-      - rag-backend
     volumes:
       - ./rag_backend:/app
       - ./rag_backend/docs:/app/docs
-    env_file:
-      - ./rag_backend/.env
+    environment:
+      BACKEND_URL: http://backend:8000
+      OLLAMA_URL: http://ollama:11434
+      OPEN_WEBUI_URL: http://open-webui:8080
+      OPEN_WEBUI_TOKEN: Bearer YOUR_OPEN_WEBUI_TOKEN
+      EMBED_MODEL: all-MiniLM-L6-v2
     restart: unless-stopped
     command: streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 8501
 
 volumes:
   openwebui_data:
   ollama_data:
+  postgres_data:

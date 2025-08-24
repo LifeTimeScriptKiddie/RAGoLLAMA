@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rag-config
+data:
+  # API Configuration
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  
+  # File Upload Configuration  
+  MAX_FILE_SIZE: "104857600"  # 100MB
+  UPLOAD_DIR: "/data/raw_docs"
+  
+  # Vector Store Configuration
+  INDEX_DIR: "/data/index"
+  CACHE_DIR: "/data/cache"
+  
+  # Embedding Configuration
+  EMBEDDING_MODEL: "sentence-transformers/all-MiniLM-L6-v2"
+  CHUNK_SIZE: "512"
+  CHUNK_OVERLAP: "50"
+  
+  # Ollama Configuration
+  OLLAMA_HOST: "ollama-service"
+  OLLAMA_PORT: "11434"
+  OLLAMA_MODEL: "llama3.1:8b"
+  
+  # Database Configuration
+  LEDGER_DB_PATH: "/data/ledger.db"
+  
+  # Rate Limiting
+  RATE_LIMIT_REQUESTS_PER_MINUTE: "60"
+  RATE_LIMIT_BURST: "10"

@@ -1,0 +1,201 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - rattgllm_pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - rattgllm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - rattgllm_qdrant_storage:/qdrant/storage
+    networks:
+      - rattgllm-network
+    ports:
+      - "6333:6333"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6333/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - rattgllm_minio_data:/data
+    networks:
+      - rattgllm-network
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - rattgllm-network
+    ports:
+      - "11435:11434"
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      "ollama serve &
+       sleep 30 &&
+       echo 'Downloading embedding model...' &&
+       ollama pull nomic-embed-text &&
+       echo 'Downloading essential chat models...' &&
+       ollama pull llama3.2 &&
+       ollama pull mistral &&
+       ollama pull codellama &&
+       ollama pull phi3 &&
+       echo 'Core models downloaded! Use scripts/download-models.sh for more.' &&
+       wait"
+
+  ingestion-api:
+    build: ./services/ingestion-api
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      OLLAMA_HOST: ollama
+      OLLAMA_PORT: 11434
+    networks:
+      - rattgllm-network
+    depends_on:
+      - postgres
+      - qdrant  
+      - minio
+    ports:
+      - "8002:8000"
+
+  worker:
+    build: ./services/worker
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      OLLAMA_HOST: ollama
+      OLLAMA_PORT: 11434
+    networks:
+      - rattgllm-network
+    depends_on:
+      - postgres
+      - qdrant  
+      - minio
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  streamlit:
+    build: ./apps/streamlit
+    environment:
+      API_BASE_URL: http://ingestion-api:8000
+    networks:
+      - rattgllm-network
+    depends_on:
+      - ingestion-api
+    ports:
+      - "8502:8501"
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:latest
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_SECRET_KEY: ${JWT_SECRET}
+      ENABLE_SIGNUP: false
+      DEFAULT_MODELS: "llama3.2,mistral,codellama,phi3,gemma2"
+      DEFAULT_USER_ROLE: user
+      WEBUI_NAME: "RattGoLLAMA Chat"
+    volumes:
+      - openwebui_data:/app/backend/data
+    networks:
+      - rattgllm-network
+    depends_on:
+      - ollama
+    ports:
+      - "3001:8080"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - rattgllm-network
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "8081:8080"
+    depends_on:
+      - streamlit
+      - ingestion-api
+      - openwebui
+
+volumes:
+  rattgllm_pg_data:
+  rattgllm_qdrant_storage:
+  rattgllm_minio_data:
+  ollama_data:
+  openwebui_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  rattgllm-network:
+    driver: bridge

@@ -1,0 +1,37 @@
+[
+    {
+        "id": "q001",
+        "question": "What is the main purpose of this document?",
+        "category": "general",
+        "expected_sources": ["summary", "introduction"],
+        "difficulty": "easy"
+    },
+    {
+        "id": "q002", 
+        "question": "What are the key findings or conclusions?",
+        "category": "analysis",
+        "expected_sources": ["conclusion", "results", "findings"],
+        "difficulty": "medium"
+    },
+    {
+        "id": "q003",
+        "question": "What methodology was used in this study?",
+        "category": "methodology",
+        "expected_sources": ["methods", "methodology", "approach"],
+        "difficulty": "medium"
+    },
+    {
+        "id": "q004",
+        "question": "What are the limitations mentioned?",
+        "category": "analysis",
+        "expected_sources": ["limitations", "discussion", "conclusion"],
+        "difficulty": "hard"
+    },
+    {
+        "id": "q005",
+        "question": "What future work is suggested?",
+        "category": "future_work",
+        "expected_sources": ["future work", "recommendations", "conclusion"],
+        "difficulty": "medium"
+    }
+]
