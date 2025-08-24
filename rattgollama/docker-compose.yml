@@ -156,10 +156,12 @@ services:
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
       WEBUI_SECRET_KEY: ${JWT_SECRET}
-      ENABLE_SIGNUP: false
-      DEFAULT_MODELS: "llama3.2,mistral,codellama,phi3,gemma2"
+      ENABLE_SIGNUP: true
+      ENABLE_LOGIN_FORM: true
+      DEFAULT_MODELS: "llama3.2,mistral,codellama,phi3"
       DEFAULT_USER_ROLE: user
       WEBUI_NAME: "RattGoLLAMA Chat"
+      ENABLE_COMMUNITY_SHARING: false
     volumes:
       - openwebui_data:/app/backend/data
     networks:

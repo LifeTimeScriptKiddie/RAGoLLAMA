@@ -10,9 +10,10 @@ from .db import get_db, create_tables
 from .models import User, Document, Embedding
 from .schemas import (
     LoginRequest, LoginResponse, DocumentResponse, 
-    SearchRequest, SearchResponse, SearchResult, ReindexRequest
+    SearchRequest, SearchResponse, SearchResult, ReindexRequest,
+    UserCreateRequest, UserResponse
 )
-from .auth import verify_password, create_access_token
+from .auth import verify_password, create_access_token, get_password_hash
 from .deps import get_current_user
 from .storage import upload_file, ensure_bucket_exists
 
@@ -157,6 +158,101 @@ async def trigger_reindex(
     db.commit()
     
     return {"message": f"Reindexing triggered for {len(documents)} documents"}
+
+@app.post("/admin/users", response_model=UserResponse)
+async def create_user(
+    user_request: UserCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Only admin users can create users
+    if current_user.roles != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can create users"
+        )
+    
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.username == user_request.username).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists"
+        )
+    
+    # Create new user
+    hashed_password = get_password_hash(user_request.password)
+    new_user = User(
+        username=user_request.username,
+        password_hash=hashed_password,
+        roles=user_request.roles
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return UserResponse(
+        id=new_user.id,
+        username=new_user.username,
+        roles=new_user.roles,
+        created_at=new_user.created_at
+    )
+
+@app.get("/admin/users", response_model=List[UserResponse])
+async def list_users(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Only admin users can list users
+    if current_user.roles != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can list users"
+        )
+    
+    users = db.query(User).all()
+    return [
+        UserResponse(
+            id=user.id,
+            username=user.username,
+            roles=user.roles,
+            created_at=user.created_at
+        )
+        for user in users
+    ]
+
+@app.delete("/admin/users/{username}")
+async def delete_user(
+    username: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Only admin users can delete users
+    if current_user.roles != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can delete users"
+        )
+    
+    # Prevent deleting yourself
+    if current_user.username == username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete your own account"
+        )
+    
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    db.delete(user)
+    db.commit()
+    
+    return {"message": f"User '{username}' deleted successfully"}
 
 @app.get("/health")
 async def health_check():

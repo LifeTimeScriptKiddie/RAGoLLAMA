@@ -41,3 +41,14 @@ class SearchResponse(BaseModel):
 
 class ReindexRequest(BaseModel):
     document_id: Optional[int] = None  # If None, reindex all documents
+
+class UserCreateRequest(BaseModel):
+    username: str
+    password: str
+    roles: str = "user"
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    roles: str
+    created_at: datetime

@@ -15,6 +15,70 @@ Then visit `http://localhost:8080/`
 
 **Default login:** `admin` / `admin`
 
+## 👥 User Management
+
+### **🔐 Streamlit Users (RAG Interface)**
+
+#### **Method 1: Command Line Script**
+```bash
+# Add user
+./scripts/add-user.sh add john secret123 user
+
+# Add admin user  
+./scripts/add-user.sh add alice admin456 admin
+
+# List all users
+./scripts/add-user.sh list
+
+# Delete user
+./scripts/add-user.sh delete john
+```
+
+#### **Method 2: API Endpoints (Admin only)**
+```bash
+# Get admin token
+ADMIN_TOKEN=$(curl -s -X POST http://localhost:8002/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin"}' | jq -r .access_token)
+
+# Create user
+curl -X POST http://localhost:8002/admin/users \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john","password":"secret123","roles":"user"}'
+
+# List users
+curl -X GET http://localhost:8002/admin/users \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+### **💬 Open WebUI Users**
+
+#### **Initial Setup (First Time)**
+1. Visit `http://localhost:3001`
+2. Sign up with first admin account, or use script:
+```bash
+./scripts/manage-openwebui-users.sh init-admin "Admin User" admin@company.com admin123
+```
+
+#### **Add Users via Script**
+```bash
+# Add regular user
+./scripts/manage-openwebui-users.sh add admin@company.com admin123 "John Doe" john@company.com userpass123
+
+# List users  
+./scripts/manage-openwebui-users.sh list admin@company.com admin123
+
+# Delete user
+./scripts/manage-openwebui-users.sh delete admin@company.com admin123 user-uuid-here
+```
+
+#### **Add Users via Web Interface**
+1. Login as admin at `http://localhost:3001`
+2. Go to Admin Settings → Users
+3. Click "Add User"
+4. Fill in details and assign role
+
 ### **🤖 Download Additional Models**
 
 The system comes with essential models (Llama 3.2, Mistral, CodeLlama, Phi3). To download more:
