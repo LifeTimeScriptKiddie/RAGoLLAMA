@@ -1,0 +1,6 @@
+msal==1.29.0
+requests==2.31.0
+keyring==24.3.0
+typer==0.9.0
+colorama==0.4.6
+rich==13.7.1

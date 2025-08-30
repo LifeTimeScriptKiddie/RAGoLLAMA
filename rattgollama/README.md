@@ -96,6 +96,7 @@ docker compose exec ollama ollama pull qwen2.5:7b
 
 ### **High-Level Architecture**
 
+![alt text](image.png)
 ```mermaid
 graph TB
     User[👤 User] --> Caddy[🌐 Caddy Reverse Proxy<br/>Port 8080]
@@ -134,7 +135,7 @@ graph TB
 ```
 
 ### **Document Processing Flow**
-
+![alt text](image-1.png)
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -183,7 +184,7 @@ sequenceDiagram
 ```
 
 ### **Chat Flow (Open WebUI)**
-
+![alt text](image-2.png)
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -202,7 +203,7 @@ sequenceDiagram
 ```
 
 ### **Data Flow Architecture**
-
+![alt text](image-3.png)
 ```mermaid
 flowchart LR
     subgraph "Input Sources"
