@@ -8,7 +8,18 @@ set -e
 echo "🦙 RattGoLLAMA User Management"
 echo "============================="
 
-# Check if container is running
+# Load env vars (if present) for DB creds
+if [ -f .env ]; then
+  # shellcheck disable=SC2046
+  export $(grep -v '^#' .env | xargs)
+fi
+
+# Defaults if env not set
+: "${POSTGRES_USER:=rattg_user}"
+: "${POSTGRES_PASSWORD:=changeme}"
+: "${POSTGRES_DB:=rattgllm}"
+
+# Check if containers are running
 if ! docker compose ps postgres | grep -q "Up"; then
     echo "❌ PostgreSQL container is not running"
     echo "Please start the system first: docker compose up -d"
@@ -23,21 +34,32 @@ add_user() {
     
     echo "Adding user: $username with role: $role"
     
-    # Generate password hash using Python
-    password_hash=$(docker compose exec -T postgres python3 -c "
-import bcrypt
-password = '$password'.encode('utf-8')
-hashed = bcrypt.hashpw(password, bcrypt.gensalt()).decode('utf-8')
-print(hashed)
-" 2>/dev/null || echo "")
+    # Generate password hash using passlib inside the API container (has deps)
+    if ! docker compose ps ingestion-api | grep -q "Up"; then
+        echo "❌ ingestion-api container is not running (needed to hash passwords)"
+        echo "Please start it: docker compose up -d ingestion-api"
+        exit 1
+    fi
+
+    # Use passlib[bcrypt] for a proper bcrypt hash
+    password_hash=$(docker compose exec -T -e PASSWORD_INPUT="$password" ingestion-api python - << 'PY'
+from passlib.context import CryptContext
+import os, sys
+pwd = os.environ.get('PASSWORD_INPUT')
+if not pwd:
+    sys.exit(1)
+ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+print(ctx.hash(pwd))
+PY
+    )
     
-    # Fallback to simple hash if bcrypt not available
     if [ -z "$password_hash" ]; then
-        password_hash="\$2b\$12\$$(echo -n "$password" | openssl dgst -sha256 | cut -d' ' -f2 | head -c 50)"
+        echo "❌ Failed to generate password hash"
+        exit 1
     fi
     
     # Insert user into database
-    docker compose exec -T postgres psql -U rattg_user -d rattgllm << EOF
+    docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" << EOF
 INSERT INTO users (username, password_hash, roles, created_at) 
 VALUES ('$username', '$password_hash', '$role', NOW())
 ON CONFLICT (username) DO UPDATE SET

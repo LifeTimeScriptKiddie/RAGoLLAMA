@@ -4,7 +4,9 @@ from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from qdrant_client import QdrantClient
+from qdrant_client.models import Filter, FieldCondition, MatchValue
 from typing import List
+import requests
 
 from .db import get_db, create_tables
 from .models import User, Document, Embedding
@@ -29,6 +31,10 @@ app.add_middleware(
 
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "localhost")
+OLLAMA_PORT = int(os.getenv("OLLAMA_PORT", "11434"))
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+COLLECTION_NAME = os.getenv("QDRANT_COLLECTION", "documents")
 
 @app.on_event("startup")
 async def startup_event():
@@ -37,6 +43,17 @@ async def startup_event():
 
 def get_qdrant_client():
     return QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+
+def get_query_embedding(text: str) -> List[float]:
+    try:
+        url = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}/api/embeddings"
+        resp = requests.post(url, json={"model": EMBEDDING_MODEL, "prompt": text}, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("embedding")
+    except Exception as e:
+        print(f"Error getting embedding from Ollama: {e}")
+        return None
 
 @app.post("/auth/login", response_model=LoginResponse)
 async def login(login_request: LoginRequest, db: Session = Depends(get_db)):
@@ -134,9 +151,46 @@ async def search_documents(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # This is a simplified search - in production, you'd use Qdrant for vector search
-    # For now, return empty results
-    return SearchResponse(results=[], total=0)
+    query = search_request.query.strip()
+    if not query:
+        return SearchResponse(results=[], total=0)
+
+    embedding = get_query_embedding(query)
+    if not embedding:
+        # Gracefully degrade with empty result set
+        return SearchResponse(results=[], total=0)
+
+    client = get_qdrant_client()
+    try:
+        qdrant_results = client.search(
+            collection_name=COLLECTION_NAME,
+            query_vector=embedding,
+            limit=search_request.limit,
+            with_payload=True
+        )
+    except Exception as e:
+        print(f"Error querying Qdrant: {e}")
+        return SearchResponse(results=[], total=0)
+
+    results: List[SearchResult] = []
+    for r in qdrant_results:
+        payload = r.payload or {}
+        doc_id = payload.get("document_id")
+        if doc_id is None:
+            continue
+        # Enforce per-user access by checking document ownership
+        doc = db.query(Document).filter(Document.id == doc_id, Document.user_id == current_user.id).first()
+        if not doc:
+            continue
+        results.append(SearchResult(
+            content=payload.get("content", ""),
+            score=float(r.score) if hasattr(r, 'score') else 0.0,
+            document_id=doc_id,
+            filename=payload.get("filename", doc.original_filename),
+            chunk_index=int(payload.get("chunk_index", 0))
+        ))
+
+    return SearchResponse(results=results, total=len(results))
 
 @app.post("/ingest/reindex")
 async def trigger_reindex(

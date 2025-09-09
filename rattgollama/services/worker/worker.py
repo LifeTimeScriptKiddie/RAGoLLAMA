@@ -36,6 +36,7 @@ QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "localhost")
 OLLAMA_PORT = int(os.getenv("OLLAMA_PORT", "11434"))
+POLL_INTERVAL_SECONDS = int(os.getenv("WORKER_POLL_SECONDS", "300"))
 
 BUCKET_NAME = "documents"
 COLLECTION_NAME = "documents"
@@ -317,9 +318,9 @@ class DocumentWorker:
                 else:
                     logger.info("No pending documents found")
                 
-                # Wait for 2 hours (7200 seconds) before next check
-                logger.info("Waiting 2 hours before next check...")
-                time.sleep(7200)
+                # Wait before next check
+                logger.info(f"Waiting {POLL_INTERVAL_SECONDS} seconds before next check...")
+                time.sleep(POLL_INTERVAL_SECONDS)
                 
             except KeyboardInterrupt:
                 logger.info("Worker stopped by user")

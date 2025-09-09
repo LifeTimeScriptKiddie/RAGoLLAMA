@@ -31,5 +31,6 @@ def decode_access_token(token: str):
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         return payload
-    except JWTError:
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, JWTError):
+        # Handle both PyJWT and python-jose exceptions gracefully
         return None

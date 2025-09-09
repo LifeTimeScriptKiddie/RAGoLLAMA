@@ -27,7 +27,7 @@ services:
     ports:
       - "6333:6333"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6333/"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:6333/readyz || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,15 +77,27 @@ services:
     command: >
       "ollama serve &
        sleep 30 &&
-       echo 'Downloading embedding model...' &&
+       echo 'Ensuring embedding model present...' &&
        ollama pull nomic-embed-text &&
-       echo 'Downloading essential chat models...' &&
+       echo 'Embedding model ready.' &&
+       wait"
+
+  # Optional: pull popular chat models (enable with: docker compose --profile chat up -d)
+  ollama-init-chat-models:
+    image: ollama/ollama:latest
+    profiles: ["chat"]
+    depends_on:
+      - ollama
+    networks:
+      - rattgllm-network
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      "echo 'Downloading chat models (profile: chat)...' &&
        ollama pull llama3.2 &&
        ollama pull mistral &&
        ollama pull codellama &&
        ollama pull phi3 &&
-       echo 'Core models downloaded! Use scripts/download-models.sh for more.' &&
-       wait"
+       echo 'Chat models downloaded.'"
 
   ingestion-api:
     build: ./services/ingestion-api
@@ -125,6 +137,7 @@ services:
       QDRANT_PORT: 6333
       OLLAMA_HOST: ollama
       OLLAMA_PORT: 11434
+      WORKER_POLL_SECONDS: 300
     networks:
       - rattgllm-network
     depends_on:
@@ -153,6 +166,7 @@ services:
 
   openwebui:
     image: ghcr.io/open-webui/open-webui:latest
+    profiles: ["chat"]
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
       WEBUI_SECRET_KEY: ${JWT_SECRET}
@@ -187,7 +201,6 @@ services:
     depends_on:
       - streamlit
       - ingestion-api
-      - openwebui
 
 volumes:
   rattgllm_pg_data:

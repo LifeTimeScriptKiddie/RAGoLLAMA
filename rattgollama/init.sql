@@ -35,8 +35,10 @@ CREATE TABLE IF NOT EXISTS embeddings (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create demo user (admin:admin for testing)
--- Password hash for 'admin'
-INSERT INTO users (id, username, password_hash, roles, created_at) 
-VALUES (1, 'admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeEj3L9c5wPj3K2cJe', 'admin', NOW())
+-- Valid bcrypt hash for password 'admin'
+INSERT INTO users (username, password_hash, roles, created_at) 
+VALUES ('admin', '$2b$12$qtE5ssRlmMBWvQi3Z3Jf4unO8MgLzKjNilSXOxZCuI9NIlWrYFIve', 'admin', NOW())
 ON CONFLICT (username) DO NOTHING;
+
+-- Ensure sequence is set correctly (in case of manual IDs)
+SELECT setval(pg_get_serial_sequence('users','id'), COALESCE(MAX(id), 1)) FROM users;
